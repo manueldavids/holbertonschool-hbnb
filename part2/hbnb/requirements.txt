@@ -1,4 +1,4 @@
-flask
-flask-restx
-pip install -r requirements.txt
-python run.py
+flask==2.3.3
+flask-restx==1.1.0
+requests==2.31.0
+python-dotenv==1.0.0
