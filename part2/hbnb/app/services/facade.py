@@ -282,4 +282,72 @@ class HBnBFacade:
             if self.amenity_repo.add(amenity):
                 return amenity
             return None
-        except Exception as 
+        except Exception as e:
+            print(f"Error creating amenity: {e}")
+            return None
+
+    def get_amenity(self, amenity_id: str) -> Optional[Amenity]:
+        """Get amenity by ID"""
+        return self.amenity_repo.get(amenity_id)
+
+    def get_all_amenities(self) -> List[Amenity]:
+        """Get all amenities"""
+        return self.amenity_repo.get_all()
+
+    def search_amenities(self, name: str) -> List[Amenity]:
+        """Search amenities by name"""
+        return self.amenity_repo.search_by_name(name)
+
+    def update_amenity(self, amenity_id: str, amenity_data: Dict[str, Any]) -> bool:
+        """Update amenity with validation"""
+        try:
+            amenity = self.get_amenity(amenity_id)
+            if not amenity:
+                return False
+            
+            # Check if new name already exists
+            if 'name' in amenity_data and amenity_data['name'] != amenity.name:
+                existing_amenity = self.amenity_repo.get_by_name(amenity_data['name'])
+                if existing_amenity:
+                    raise ValueError("Amenity name already exists")
+            
+            return self.amenity_repo.update(amenity_id, amenity_data)
+        except Exception as e:
+            print(f"Error updating amenity: {e}")
+            return False
+
+    def delete_amenity(self, amenity_id: str) -> bool:
+        """Delete amenity and remove from all places"""
+        try:
+            amenity = self.get_amenity(amenity_id)
+            if not amenity:
+                return False
+            
+            # Remove amenity from all places
+            all_places = self.place_repo.get_all()
+            for place in all_places:
+                if amenity_id in place.amenity_ids:
+                    place.remove_amenity(amenity_id)
+            
+            return self.amenity_repo.delete(amenity_id)
+        except Exception as e:
+            print(f"Error deleting amenity: {e}")
+            return False
+
+    # ========== UTILITY METHODS ==========
+    
+    def get_statistics(self) -> Dict[str, int]:
+        """Get basic statistics about the system"""
+        return {
+            'total_users': self.user_repo.count(),
+            'total_places': self.place_repo.count(),
+            'total_reviews': self.review_repo.count(),
+            'total_amenities': self.amenity_repo.count()
+        }
+
+    def clear_all_data(self):
+        """Clear all data from all repositories (useful for testing)"""
+        self.user_repo.clear()
+        self.place_repo.clear()
+        self.review_repo.clear()
+        self.amenity_repo.clear() 
