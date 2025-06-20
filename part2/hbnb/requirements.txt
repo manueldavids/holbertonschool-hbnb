@@ -1,0 +1,4 @@
+flask
+flask-restx
+pip install -r requirements.txt
+python run.py
