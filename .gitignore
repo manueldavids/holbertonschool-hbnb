@@ -196,6 +196,10 @@ $RECYCLE.BIN/
 # Ignore the virtual environment directory
 part2/hbnbenv/
 
+# Ignore all Python package metadata
+**/*.dist-info/
+**/*.egg-info/
+
 # Logs
 *.log
 logs/
@@ -224,3 +228,4 @@ logs/
 .Trashes
 ehthumbs.db
 Thumbs.db
+hbnbenv/
