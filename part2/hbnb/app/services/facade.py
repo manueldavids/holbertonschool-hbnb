@@ -56,3 +56,23 @@ class HBnBFacade:
     def update_amenity(self, amenity_id, amenity_data):
     # Placeholder for logic to update an amenity
         pass
+
+    # Create a place
+    def create_place(self, place_data):
+        # Placeholder for logic to create a place, including validation for price, latitude, and longitude
+        pass
+
+    # Get a place by ID
+    def get_place(self, place_id):
+    # Placeholder for logic to retrieve a place by ID, including associated owner and amenities
+        pass
+
+    # Get all places
+    def get_all_places(self):
+    # Placeholder for logic to retrieve all places
+        pass
+
+    # Update a place
+    def update_place(self, place_id, place_data):
+        # Placeholder for logic to update a place
+        pass
