@@ -1,5 +1,5 @@
 from flask import request, jsonify
-from flask_restx import Namespace, Resource
+from flask_restx import Namespace, Resource, fields
 from app.services import hbnb_facade
 from app.api.v1.models import create_api_models
 
