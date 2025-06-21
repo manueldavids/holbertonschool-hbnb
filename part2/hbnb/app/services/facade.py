@@ -24,7 +24,17 @@ class HBnBFacade:
 
     # Placeholder method for fetching a place by ID
     def get_place(self, place_id):
-        # Logic will be implemented in later tasks
+        pass
+
+    # Get all places
+    def get_all_places(self, place_id):
+        pass
+
+    # Update a place
+    def update_place(self, place_id, place_data):
+        pass
+    # Delete a place
+    def delete_place(self, place_id):
         pass
 
     # Create an amenity
