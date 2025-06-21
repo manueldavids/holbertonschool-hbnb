@@ -27,21 +27,22 @@ class HBnBFacade:
         # Logic will be implemented in later tasks
         pass
 
+    # Create an amenity
     def create_amenity(self, amenity_data):
-    # Placeholder for logic to create an amenity
-    pass
+        # Placeholder for logic to create an amenity
+        pass
 
     # Get an amenity by ID
     def get_amenity(self, amenity_id):
     # Placeholder for logic to retrieve an amenity by ID
-    pass
+        pass
 
     # Get all amenities
     def get_all_amenities(self):
     # Placeholder for logic to retrieve all amenities
-    pass
+        pass
 
     # Update an amenity
     def update_amenity(self, amenity_id, amenity_data):
     # Placeholder for logic to update an amenity
-    pass
+        pass
