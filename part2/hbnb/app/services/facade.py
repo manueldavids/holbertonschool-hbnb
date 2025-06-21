@@ -2,6 +2,7 @@ from app.persistence.repository import InMemoryRepository
 from app.models.user import User
 from app.models.amenity import Amenity
 from app.models.place import Place
+from app.models.review import Review
 
 class HBnBFacade:
     def __init__(self):
@@ -112,3 +113,75 @@ class HBnBFacade:
             return place
         except ValueError as e:
             raise ValueError(f"Invalid update data: {str(e)}")
+
+    # Review methods
+    def create_review(self, review_data):
+        """Create a new review with validation"""
+        # Validate user exists
+        user = self.get_user(review_data.get('user_id'))
+        if not user:
+            raise ValueError("User not found")
+        
+        # Validate place exists
+        place = self.get_place(review_data.get('place_id'))
+        if not place:
+            raise ValueError("Place not found")
+        
+        # Create review (rating validation happens in the model)
+        try:
+            review = Review(**review_data)
+            self.review_repo.add(review)
+            return review
+        except ValueError as e:
+            raise ValueError(f"Invalid review data: {str(e)}")
+
+    def get_review(self, review_id):
+        """Get a review by ID"""
+        return self.review_repo.get(review_id)
+
+    def get_all_reviews(self):
+        """Get all reviews"""
+        return self.review_repo.get_all()
+
+    def get_reviews_by_place(self, place_id):
+        """Get all reviews for a specific place"""
+        # First validate that the place exists
+        place = self.get_place(place_id)
+        if not place:
+            raise ValueError("Place not found")
+        
+        # Get all reviews for this place
+        all_reviews = self.get_all_reviews()
+        return [review for review in all_reviews if review.place_id == place_id]
+
+    def update_review(self, review_id, review_data):
+        """Update a review"""
+        review = self.review_repo.get(review_id)
+        if not review:
+            return None
+        
+        # Validate user if being updated
+        if 'user_id' in review_data:
+            user = self.get_user(review_data['user_id'])
+            if not user:
+                raise ValueError("User not found")
+        
+        # Validate place if being updated
+        if 'place_id' in review_data:
+            place = self.get_place(review_data['place_id'])
+            if not place:
+                raise ValueError("Place not found")
+        
+        try:
+            review.update(review_data)
+            return review
+        except ValueError as e:
+            raise ValueError(f"Invalid update data: {str(e)}")
+
+    def delete_review(self, review_id):
+        """Delete a review"""
+        review = self.review_repo.get(review_id)
+        if review:
+            self.review_repo.delete(review_id)
+            return True
+        return False
