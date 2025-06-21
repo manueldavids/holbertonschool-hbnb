@@ -40,4 +40,4 @@ class AmenityResource(Resource):
     def put(self, amenity_id):
         """Update an amenity's information"""
         # Placeholder for the logic to update an amenity by ID
-        pass
+    
