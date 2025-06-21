@@ -3,13 +3,23 @@ from .base_model import BaseModel
 class Place(BaseModel):
     def __init__(self, title, description, price, latitude, longitude, owner_id, amenities=None):
         super().__init__()
-        self.title = title
+        self.title = self._validate_title(title)
         self.description = description
         self.price = price  # This will use the property setter
         self.latitude = latitude  # This will use the property setter
         self.longitude = longitude  # This will use the property setter
         self.owner_id = owner_id
         self.amenities = amenities or []
+
+    def _validate_title(self, title):
+        """Validate that title is not empty"""
+        if not title or not title.strip():
+            raise ValueError("Title cannot be empty")
+        if not isinstance(title, str):
+            raise ValueError("Title must be a string")
+        if len(title.strip()) < 1:
+            raise ValueError("Title cannot be empty")
+        return title.strip()
 
     @property
     def price(self):
