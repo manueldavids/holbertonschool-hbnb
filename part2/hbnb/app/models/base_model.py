@@ -15,5 +15,6 @@ class BaseModel:
         """Update the attributes of the object based on the provided dictionary"""
         for key, value in data.items():
             if hasattr(self, key):
-                setattr(self, key, value)
+                setattr(self, key, value)  # This will use property setters if they exist
         self.save()  # Update the updated_at timestamp
+        
