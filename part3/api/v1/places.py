@@ -4,13 +4,13 @@ Handles CRUD operations for places with authenticated user access.
 """
 
 from flask_restx import Namespace, Resource, fields
-from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
-from sqlalchemy.exc import IntegrityError
-from app.models.user import User, db
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from app.models.user import User
 
+# Create API namespace
 api = Namespace('places', description='Places management operations')
 
-# Model for place creation input validation
+# Input validation models
 place_creation_model = api.model('PlaceCreation', {
     'name': fields.String(
         required=True,
@@ -43,7 +43,6 @@ place_creation_model = api.model('PlaceCreation', {
     )
 })
 
-# Model for place update input validation
 place_update_model = api.model('PlaceUpdate', {
     'name': fields.String(description='Place name'),
     'description': fields.String(description='Place description'),
@@ -54,7 +53,7 @@ place_update_model = api.model('PlaceUpdate', {
     'longitude': fields.Float(description='Longitude coordinate')
 })
 
-# Model for place response
+# Response models
 place_response_model = api.model('PlaceResponse', {
     'id': fields.String(description='Place ID'),
     'name': fields.String(description='Place name'),
@@ -69,7 +68,6 @@ place_response_model = api.model('PlaceResponse', {
     'updated_at': fields.String(description='Last update timestamp')
 })
 
-# Model for error responses
 error_model = api.model('Error', {
     'error': fields.String(description='Error message'),
     'details': fields.String(
@@ -170,8 +168,75 @@ def get_all_places():
     return list(places_db.values())
 
 
+def validate_place_data(place_data):
+    """
+    Validate place data.
+    
+    Args:
+        place_data (dict): Place data to validate
+        
+    Returns:
+        tuple: (is_valid, error_message)
+    """
+    if not place_data or 'name' not in place_data:
+        return False, "Place name is required"
+    
+    # Validate price_per_night
+    if 'price_per_night' in place_data:
+        try:
+            price = float(place_data['price_per_night'])
+            if price < 0:
+                return False, "Price per night cannot be negative"
+        except (ValueError, TypeError):
+            return False, "Invalid price per night value"
+    
+    # Validate max_guests
+    if 'max_guests' in place_data:
+        try:
+            guests = int(place_data['max_guests'])
+            if guests <= 0:
+                return False, "Maximum guests must be positive"
+        except (ValueError, TypeError):
+            return False, "Invalid maximum guests value"
+    
+    # Validate coordinates
+    if 'latitude' in place_data:
+        try:
+            lat = float(place_data['latitude'])
+            if not -90 <= lat <= 90:
+                return False, "Latitude must be between -90 and 90"
+        except (ValueError, TypeError):
+            return False, "Invalid latitude value"
+    
+    if 'longitude' in place_data:
+        try:
+            lon = float(place_data['longitude'])
+            if not -180 <= lon <= 180:
+                return False, "Longitude must be between -180 and 180"
+        except (ValueError, TypeError):
+            return False, "Invalid longitude value"
+    
+    return True, ""
+
+
+def get_current_user():
+    """
+    Get current authenticated user.
+    
+    Returns:
+        User: Current user instance or None
+    """
+    try:
+        current_user_id = get_jwt_identity()
+        return User.get_by_id(current_user_id)
+    except Exception:
+        return None
+
+
 @api.route('/')
 class PlacesList(Resource):
+    """Resource for listing and creating places."""
+
     @api.response(200, 'Places retrieved successfully')
     @api.response(500, 'Internal server error', error_model)
     def get(self):
@@ -207,29 +272,29 @@ class PlacesList(Resource):
         owned by the authenticated user.
         """
         try:
-            # Get current user identity
-            current_user_id = get_jwt_identity()
-
-            # Verify user exists
-            user = User.get_by_id(current_user_id)
+            # Get current user
+            user = get_current_user()
             if not user:
                 return {
                     'error': 'User not found'
                 }, 401
 
-            # Get place data from request payload
+            # Get and validate place data
             place_data = api.payload
-
-            # Validate required fields
-            if not place_data or 'name' not in place_data:
+            is_valid, error_message = validate_place_data(place_data)
+            
+            if not is_valid:
                 return {
-                    'error': 'Place name is required'
+                    'error': error_message
                 }, 400
 
             # Create new place
-            new_place = create_place(place_data, current_user_id)
+            new_place = create_place(place_data, str(user.id))
+            if not new_place:
+                return {
+                    'error': 'Failed to create place'
+                }, 500
 
-            # Return created place
             return new_place.to_dict(), 201
 
         except Exception as e:
@@ -241,7 +306,10 @@ class PlacesList(Resource):
 
 @api.route('/<string:place_id>')
 class PlaceResource(Resource):
+    """Resource for individual place operations."""
+
     @api.response(200, 'Place retrieved successfully', place_response_model)
+    @api.response(400, 'Bad request', error_model)
     @api.response(404, 'Place not found', error_model)
     @api.response(500, 'Internal server error', error_model)
     def get(self, place_id):
@@ -265,7 +333,6 @@ class PlaceResource(Resource):
                     'error': 'Place not found'
                 }, 404
 
-            # Return place data
             return place.to_dict(), 200
 
         except Exception as e:
@@ -296,11 +363,8 @@ class PlaceResource(Resource):
                     'error': 'Place ID is required'
                 }, 400
 
-            # Get current user identity
-            current_user_id = get_jwt_identity()
-
-            # Verify user exists
-            user = User.get_by_id(current_user_id)
+            # Get current user
+            user = get_current_user()
             if not user:
                 return {
                     'error': 'User not found'
@@ -314,18 +378,27 @@ class PlaceResource(Resource):
                 }, 404
 
             # Check ownership
-            if place.owner_id != current_user_id:
+            if place.owner_id != str(user.id):
                 return {
                     'error': 'Forbidden - you can only update your own places'
                 }, 403
 
-            # Get update data from request payload
+            # Get and validate update data
             update_data = api.payload
+            if update_data:
+                is_valid, error_message = validate_place_data(update_data)
+                if not is_valid:
+                    return {
+                        'error': error_message
+                    }, 400
 
             # Update place
             updated_place = update_place(place_id, update_data)
+            if not updated_place:
+                return {
+                    'error': 'Failed to update place'
+                }, 500
 
-            # Return updated place
             return updated_place.to_dict(), 200
 
         except Exception as e:
@@ -336,6 +409,7 @@ class PlaceResource(Resource):
 
     @jwt_required()
     @api.response(200, 'Place deleted successfully')
+    @api.response(400, 'Bad request', error_model)
     @api.response(401, 'Unauthorized', error_model)
     @api.response(403, 'Forbidden - not the owner', error_model)
     @api.response(404, 'Place not found', error_model)
@@ -354,11 +428,8 @@ class PlaceResource(Resource):
                     'error': 'Place ID is required'
                 }, 400
 
-            # Get current user identity
-            current_user_id = get_jwt_identity()
-
-            # Verify user exists
-            user = User.get_by_id(current_user_id)
+            # Get current user
+            user = get_current_user()
             if not user:
                 return {
                     'error': 'User not found'
@@ -372,7 +443,7 @@ class PlaceResource(Resource):
                 }, 404
 
             # Check ownership
-            if place.owner_id != current_user_id:
+            if place.owner_id != str(user.id):
                 return {
                     'error': 'Forbidden - you can only delete your own places'
                 }, 403
