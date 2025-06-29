@@ -82,6 +82,9 @@ def create_app(config_name=None):
     # Method 1: Conditional initialization based on configuration
     _initialize_extensions(app, config_name)
 
+    # Import models so Alembic can detect them
+    from app.models import user
+
     # Method 2: Registro de blueprints condicional
     _register_blueprints(app, config_name)
 

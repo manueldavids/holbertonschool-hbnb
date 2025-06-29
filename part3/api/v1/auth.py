@@ -11,8 +11,8 @@ from flask_jwt_extended import (
 from werkzeug.security import check_password_hash
 from datetime import timedelta
 
-# Import the facade for user operations
-# from app.services import facade
+# Import the User model
+from app.models.user import User
 
 api = Namespace('auth', description='Authentication operations')
 
@@ -66,28 +66,25 @@ class Login(Resource):
             password = credentials['password']
 
             # Step 1: Retrieve the user based on the provided email
-            # user = facade.get_user_by_email(email)
-
-            # Temporary mock user for testing (replace with actual facade call)
-            user = _get_mock_user(email)
+            user = User.get_by_email(email)
 
             # Step 2: Check if the user exists and the password is correct
-            if not user or not _verify_password(user, password):
+            if not user or not user.verify_password(password):
                 return {'error': 'Invalid credentials'}, 401
 
             # Step 3: Create JWT tokens with user claims
             access_token = create_access_token(
-                identity={
-                    'id': str(user['id']),
-                    'is_admin': user['is_admin']
+                identity=str(user.id),
+                additional_claims={
+                    'is_admin': user.is_admin
                 },
                 expires_delta=timedelta(hours=1)
             )
 
             refresh_token = create_refresh_token(
-                identity={
-                    'id': str(user['id']),
-                    'is_admin': user['is_admin']
+                identity=str(user.id),
+                additional_claims={
+                    'is_admin': user.is_admin
                 },
                 expires_delta=timedelta(days=30)
             )
@@ -118,11 +115,15 @@ class TokenRefresh(Resource):
         """
         try:
             # Get current user identity from refresh token
-            current_user = get_jwt_identity()
+            current_user_id = get_jwt_identity()
+            current_claims = get_jwt()
 
             # Create new access token
             access_token = create_access_token(
-                identity=current_user,
+                identity=current_user_id,
+                additional_claims={
+                    'is_admin': current_claims.get('is_admin', False)
+                },
                 expires_delta=timedelta(hours=1)
             )
 
@@ -150,15 +151,15 @@ class ProtectedResource(Resource):
         """
         try:
             # Get current user identity from token
-            current_user = get_jwt_identity()
+            current_user_id = get_jwt_identity()
+            current_claims = get_jwt()
 
             # Extract user information from token claims
-            user_id = current_user.get('id', 'unknown')
-            is_admin = current_user.get('is_admin', False)
+            is_admin = current_claims.get('is_admin', False)
 
             return {
-                'message': f'Hello, user {user_id}',
-                'user_id': user_id,
+                'message': f'Hello, user {current_user_id}',
+                'user_id': current_user_id,
                 'is_admin': is_admin
             }, 200
 
@@ -191,41 +192,3 @@ class Logout(Resource):
 
         except Exception as e:
             return {'error': f'Logout failed: {str(e)}'}, 500
-
-
-def _get_mock_user(email):
-    """
-    Temporary mock user function for testing.
-
-    Replace this with actual facade.get_user_by_email() call
-    when the user service is implemented.
-    """
-    mock_users = {
-        'john.doe@example.com': {
-            'id': '3fa85f64-5717-4562-b3fc-2c963f66afa6',
-            'email': 'john.doe@example.com',
-            'password_hash': 'pbkdf2:sha256:600000$test_hash',
-            'is_admin': False
-        },
-        'admin@example.com': {
-            'id': '4fa85f64-5717-4562-b3fc-2c963f66afa7',
-            'email': 'admin@example.com',
-            'password_hash': 'pbkdf2:sha256:600000$admin_hash',
-            'is_admin': True
-        }
-    }
-    return mock_users.get(email)
-
-
-def _verify_password(user, password):
-    """
-    Verify user password.
-
-    Replace this with actual password verification
-    when the user model is implemented.
-    """
-    # For testing purposes, accept any password
-    # In production, use: return check_password_hash(
-    #     user.password_hash, password)
-    #     user.password_hash, password)
-    return True

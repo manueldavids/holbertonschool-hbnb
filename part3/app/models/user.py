@@ -8,11 +8,11 @@ from datetime import datetime
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
 
+# Import db from app.__init__
+from app import db
+
 # Initialize bcrypt for password hashing
 bcrypt = Bcrypt()
-
-# Initialize database
-db = SQLAlchemy()
 
 
 class User(db.Model):
