@@ -71,10 +71,10 @@ error_model = api.model('Error', {
 def validate_email(email):
     """
     Validate email format.
-    
+
     Args:
         email (str): Email to validate
-        
+
     Returns:
         bool: True if valid, False otherwise
     """
@@ -86,19 +86,19 @@ def validate_email(email):
 def validate_password(password):
     """
     Validate password strength.
-    
+
     Args:
         password (str): Password to validate
-        
+
     Returns:
         tuple: (is_valid, error_message)
     """
     if not password or not isinstance(password, str):
         return False, "Password is required"
-    
+
     if len(password) < 6:
         return False, "Password must be at least 6 characters long"
-    
+
     return True, None
 
 
@@ -325,7 +325,7 @@ class UserResource(Resource):
 @api.route('/me')
 class CurrentUser(Resource):
     @jwt_required()
-    @api.response(200, 'Current user retrieved successfully', 
+    @api.response(200, 'Current user retrieved successfully',
                  user_response_model)
     @api.response(404, 'User not found', error_model)
     @api.response(500, 'Internal server error', error_model)
@@ -382,7 +382,7 @@ class UserList(Resource):
 
             # Get all users with pagination
             users = User.get_all_users()
-            
+
             # Return user data (passwords excluded)
             return {
                 'users': [user.to_dict() for user in users],
