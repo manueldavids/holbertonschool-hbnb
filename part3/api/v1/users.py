@@ -51,6 +51,13 @@ user_response_model = api.model('UserResponse', {
     'updated_at': fields.String(description='Last update timestamp')
 })
 
+# Model for user update input validation
+user_update_model = api.model('UserUpdate', {
+    'first_name': fields.String(description='User first name'),
+    'last_name': fields.String(description='User last name'),
+    'is_admin': fields.Boolean(description='Admin privileges flag')
+})
+
 # Model for error responses
 error_model = api.model('Error', {
     'error': fields.String(description='Error message'),
@@ -229,6 +236,83 @@ class UserResource(Resource):
         except Exception as e:
             return {
                 'error': 'Failed to retrieve user',
+                'details': str(e)
+            }, 500
+
+    @jwt_required()
+    @api.expect(user_update_model)
+    @api.response(200, 'User updated successfully', user_response_model)
+    @api.response(400, 'Bad request', error_model)
+    @api.response(401, 'Unauthorized', error_model)
+    @api.response(404, 'User not found', error_model)
+    @api.response(500, 'Internal server error', error_model)
+    def put(self, user_id):
+        """
+        Update user details (excluding email and password).
+
+        This endpoint allows users to update their own details.
+        Users can only update their own data, unless they are admin.
+        Email and password cannot be updated through this endpoint.
+        """
+        try:
+            # Validate user_id
+            if not user_id:
+                return {
+                    'error': 'User ID is required'
+                }, 400
+
+            # Get current user identity
+            current_user_id = get_jwt_identity()
+            current_claims = get_jwt()
+            is_admin = current_claims.get('is_admin', False)
+
+            # Users can only update their own data, unless they are admin
+            if current_user_id != user_id and not is_admin:
+                return {
+                    'error': 'Unauthorized - can only update own user data'
+                }, 401
+
+            # Get user from database
+            user = User.get_by_id(user_id)
+            if not user:
+                return {
+                    'error': 'User not found'
+                }, 404
+
+            # Get update data from request payload
+            update_data = api.payload
+            if not update_data:
+                return {
+                    'error': 'Update data is required'
+                }, 400
+
+            # Remove email and password from update data (not allowed)
+            if 'email' in update_data:
+                del update_data['email']
+            if 'password' in update_data:
+                del update_data['password']
+
+            # Update user fields
+            for field, value in update_data.items():
+                if hasattr(user, field) and value is not None:
+                    setattr(user, field, value)
+
+            # Save changes to database
+            try:
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+                return {
+                    'error': 'Failed to update user data'
+                }, 500
+
+            # Return updated user data (password excluded)
+            return user.to_dict(), 200
+
+        except Exception as e:
+            db.session.rollback()
+            return {
+                'error': 'Failed to update user',
                 'details': str(e)
             }, 500
 
