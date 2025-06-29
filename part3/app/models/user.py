@@ -7,6 +7,7 @@ import uuid
 from datetime import datetime
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import IntegrityError
 
 # Import db from app.__init__
 from app import db
@@ -62,11 +63,11 @@ class User(db.Model):
             is_admin (bool, optional): Admin privileges flag
         """
         self.id = str(uuid.uuid4())
-        self.email = email
+        self.email = email.lower().strip() if email else None
         self.password_hash = self._hash_password(password)
-        self.first_name = first_name
-        self.last_name = last_name
-        self.is_admin = is_admin
+        self.first_name = first_name.strip() if first_name else None
+        self.last_name = last_name.strip() if last_name else None
+        self.is_admin = bool(is_admin)
 
     def _hash_password(self, password):
         """
@@ -77,7 +78,13 @@ class User(db.Model):
 
         Returns:
             str: Hashed password
+
+        Raises:
+            ValueError: If password is empty or None
         """
+        if not password:
+            raise ValueError("Password cannot be empty")
+        
         return bcrypt.generate_password_hash(password).decode('utf-8')
 
     def verify_password(self, password):
@@ -90,6 +97,9 @@ class User(db.Model):
         Returns:
             bool: True if password matches, False otherwise
         """
+        if not password or not self.password_hash:
+            return False
+        
         return bcrypt.check_password_hash(self.password_hash, password)
 
     def to_dict(self):
@@ -107,10 +117,8 @@ class User(db.Model):
             'first_name': self.first_name,
             'last_name': self.last_name,
             'is_admin': self.is_admin,
-            'created_at': (self.created_at.isoformat()
-                           if self.created_at else None),
-            'updated_at': (self.updated_at.isoformat()
-                           if self.updated_at else None)
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
 
     def update_password(self, new_password):
@@ -119,8 +127,36 @@ class User(db.Model):
 
         Args:
             new_password (str): New plain text password
+
+        Raises:
+            ValueError: If new password is empty or None
         """
+        if not new_password:
+            raise ValueError("New password cannot be empty")
+        
         self.password_hash = self._hash_password(new_password)
+        self.updated_at = datetime.utcnow()
+
+    def update_profile(self, **kwargs):
+        """
+        Update user profile information.
+
+        Args:
+            **kwargs: Fields to update (email, first_name, last_name, is_admin)
+        """
+        allowed_fields = {'email', 'first_name', 'last_name', 'is_admin'}
+        
+        for field, value in kwargs.items():
+            if field in allowed_fields:
+                if field == 'email' and value:
+                    value = value.lower().strip()
+                elif field in {'first_name', 'last_name'} and value:
+                    value = value.strip()
+                elif field == 'is_admin':
+                    value = bool(value)
+                
+                setattr(self, field, value)
+        
         self.updated_at = datetime.utcnow()
 
     @classmethod
@@ -138,7 +174,13 @@ class User(db.Model):
 
         Returns:
             User: Newly created user instance
+
+        Raises:
+            ValueError: If email or password are invalid
         """
+        if not email or not password:
+            raise ValueError("Email and password are required")
+        
         user = cls(
             email=email,
             password=password,
@@ -159,7 +201,10 @@ class User(db.Model):
         Returns:
             User: User instance if found, None otherwise
         """
-        return cls.query.filter_by(email=email).first()
+        if not email:
+            return None
+        
+        return cls.query.filter_by(email=email.lower().strip()).first()
 
     @classmethod
     def get_by_id(cls, user_id):
@@ -172,8 +217,35 @@ class User(db.Model):
         Returns:
             User: User instance if found, None otherwise
         """
+        if not user_id:
+            return None
+        
         return cls.query.get(user_id)
+
+    @classmethod
+    def get_all_users(cls, limit=None, offset=0):
+        """
+        Get all users with optional pagination.
+
+        Args:
+            limit (int, optional): Maximum number of users to return
+            offset (int, optional): Number of users to skip
+
+        Returns:
+            list: List of User instances
+        """
+        query = cls.query
+        if offset:
+            query = query.offset(offset)
+        if limit:
+            query = query.limit(limit)
+        
+        return query.all()
 
     def __repr__(self):
         """String representation of the user."""
         return f'<User {self.email}>'
+
+    def __str__(self):
+        """String representation for display."""
+        return f"User(id={self.id}, email={self.email})"
