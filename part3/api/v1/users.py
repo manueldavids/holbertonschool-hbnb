@@ -61,17 +61,20 @@ user_update_model = api.model('UserUpdate', {
 # Model for error responses
 error_model = api.model('Error', {
     'error': fields.String(description='Error message'),
-    'details': fields.String(description='Additional error details', required=False)
+    'details': fields.String(
+        description='Additional error details',
+        required=False
+    )
 })
 
 
 def validate_email(email):
     """
     Validate email format.
-
+    
     Args:
         email (str): Email to validate
-
+        
     Returns:
         bool: True if valid, False otherwise
     """
@@ -83,19 +86,19 @@ def validate_email(email):
 def validate_password(password):
     """
     Validate password strength.
-
+    
     Args:
         password (str): Password to validate
-
+        
     Returns:
         tuple: (is_valid, error_message)
     """
     if not password or not isinstance(password, str):
         return False, "Password is required"
-
+    
     if len(password) < 6:
         return False, "Password must be at least 6 characters long"
-
+    
     return True, None
 
 
@@ -110,8 +113,9 @@ class UserRegistration(Resource):
         """
         Register a new user with password hashing.
 
-        This endpoint creates a new user account with a securely hashed password.
-        The password is never stored in plain text and is not returned in responses.
+        This endpoint creates a new user account with a securely hashed
+        password. The password is never stored in plain text and is not
+        returned in responses.
         """
         try:
             # Get user data from request payload
@@ -202,8 +206,9 @@ class UserResource(Resource):
         """
         Get user information by ID.
 
-        This endpoint returns user data excluding the password hash for security.
-        Users can only access their own data, unless they are admin.
+        This endpoint returns user data excluding the password hash for
+        security. Users can only access their own data, unless they are
+        admin.
         """
         try:
             # Validate user_id
@@ -320,7 +325,8 @@ class UserResource(Resource):
 @api.route('/me')
 class CurrentUser(Resource):
     @jwt_required()
-    @api.response(200, 'Current user retrieved successfully', user_response_model)
+    @api.response(200, 'Current user retrieved successfully', 
+                 user_response_model)
     @api.response(404, 'User not found', error_model)
     @api.response(500, 'Internal server error', error_model)
     def get(self):
@@ -360,8 +366,8 @@ class UserList(Resource):
         """
         Get all users (admin only).
 
-        This endpoint returns a list of all users, excluding password hashes.
-        Only admin users can access this endpoint.
+        This endpoint returns a list of all users, excluding password
+        hashes. Only admin users can access this endpoint.
         """
         try:
             # Get current user claims
@@ -376,7 +382,7 @@ class UserList(Resource):
 
             # Get all users with pagination
             users = User.get_all_users()
-
+            
             # Return user data (passwords excluded)
             return {
                 'users': [user.to_dict() for user in users],
