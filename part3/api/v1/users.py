@@ -17,12 +17,12 @@ EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
 # Model for user registration input validation
 user_registration_model = api.model('UserRegistration', {
     'email': fields.String(
-        required=True, 
+        required=True,
         description='User email address',
         example='user@example.com'
     ),
     'password': fields.String(
-        required=True, 
+        required=True,
         description='User password (minimum 6 characters)',
         example='securepassword123'
     ),
@@ -68,10 +68,10 @@ error_model = api.model('Error', {
 def validate_email(email):
     """
     Validate email format.
-    
+
     Args:
         email (str): Email to validate
-        
+
     Returns:
         bool: True if valid, False otherwise
     """
@@ -83,19 +83,19 @@ def validate_email(email):
 def validate_password(password):
     """
     Validate password strength.
-    
+
     Args:
         password (str): Password to validate
-        
+
     Returns:
         tuple: (is_valid, error_message)
     """
     if not password or not isinstance(password, str):
         return False, "Password is required"
-    
+
     if len(password) < 6:
         return False, "Password must be at least 6 characters long"
-    
+
     return True, None
 
 
@@ -376,7 +376,7 @@ class UserList(Resource):
 
             # Get all users with pagination
             users = User.get_all_users()
-            
+
             # Return user data (passwords excluded)
             return {
                 'users': [user.to_dict() for user in users],
@@ -387,4 +387,4 @@ class UserList(Resource):
             return {
                 'error': 'Failed to retrieve users',
                 'details': str(e)
-            }, 500 
+            }, 500

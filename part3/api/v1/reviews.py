@@ -55,7 +55,7 @@ error_model = api.model('Error', {
 
 class Place:
     """Mock Place class for demonstration."""
-    
+
     def __init__(self, id, owner_id):
         self.id = id
         self.owner_id = owner_id
@@ -106,7 +106,7 @@ def get_review_by_id(review_id):
 
 def get_reviews_by_place(place_id):
     """Get all reviews for a specific place."""
-    return [review for review in reviews_db.values() 
+    return [review for review in reviews_db.values()
             if review.place_id == place_id]
 
 
@@ -162,39 +162,39 @@ def get_all_reviews():
 def validate_review_data(review_data):
     """
     Validate review data.
-    
+
     Args:
         review_data (dict): Review data to validate
-        
+
     Returns:
         tuple: (is_valid, error_message)
     """
     if not review_data:
         return False, "Review data is required"
-    
+
     # Validate place_id
     if not review_data.get('place_id'):
         return False, "Place ID is required"
-    
+
     # Validate rating
     rating = review_data.get('rating')
     if rating is None:
         return False, "Rating is required"
-    
+
     try:
         rating = int(rating)
         if not 1 <= rating <= 5:
             return False, "Rating must be between 1 and 5"
     except (ValueError, TypeError):
         return False, "Invalid rating value"
-    
+
     return True, ""
 
 
 def get_current_user():
     """
     Get current authenticated user.
-    
+
     Returns:
         User: Current user instance or None
     """
@@ -257,14 +257,14 @@ class ReviewsList(Resource):
             # Get and validate review data
             review_data = api.payload
             is_valid, error_message = validate_review_data(review_data)
-            
+
             if not is_valid:
                 return {
                     'error': error_message
                 }, 400
 
             place_id = review_data.get('place_id')
-            
+
             # Check if place exists
             place = get_place_by_id(place_id)
             if not place:
@@ -511,4 +511,4 @@ class PlaceReviews(Resource):
             return {
                 'error': 'Failed to retrieve place reviews',
                 'details': str(e)
-            }, 500 
+            }, 500
