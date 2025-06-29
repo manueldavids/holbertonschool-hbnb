@@ -171,16 +171,16 @@ def get_all_places():
 def validate_place_data(place_data):
     """
     Validate place data.
-    
+
     Args:
         place_data (dict): Place data to validate
-        
+
     Returns:
         tuple: (is_valid, error_message)
     """
     if not place_data or 'name' not in place_data:
         return False, "Place name is required"
-    
+
     # Validate price_per_night
     if 'price_per_night' in place_data:
         try:
@@ -189,7 +189,7 @@ def validate_place_data(place_data):
                 return False, "Price per night cannot be negative"
         except (ValueError, TypeError):
             return False, "Invalid price per night value"
-    
+
     # Validate max_guests
     if 'max_guests' in place_data:
         try:
@@ -198,7 +198,7 @@ def validate_place_data(place_data):
                 return False, "Maximum guests must be positive"
         except (ValueError, TypeError):
             return False, "Invalid maximum guests value"
-    
+
     # Validate coordinates
     if 'latitude' in place_data:
         try:
@@ -207,7 +207,7 @@ def validate_place_data(place_data):
                 return False, "Latitude must be between -90 and 90"
         except (ValueError, TypeError):
             return False, "Invalid latitude value"
-    
+
     if 'longitude' in place_data:
         try:
             lon = float(place_data['longitude'])
@@ -215,14 +215,14 @@ def validate_place_data(place_data):
                 return False, "Longitude must be between -180 and 180"
         except (ValueError, TypeError):
             return False, "Invalid longitude value"
-    
+
     return True, ""
 
 
 def get_current_user():
     """
     Get current authenticated user.
-    
+
     Returns:
         User: Current user instance or None
     """
@@ -282,7 +282,7 @@ class PlacesList(Resource):
             # Get and validate place data
             place_data = api.payload
             is_valid, error_message = validate_place_data(place_data)
-            
+
             if not is_valid:
                 return {
                     'error': error_message
