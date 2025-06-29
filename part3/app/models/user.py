@@ -18,7 +18,7 @@ db = SQLAlchemy()
 class User(db.Model):
     """
     User model with password hashing capabilities.
-    
+
     Attributes:
         id (str): Unique user identifier (UUID)
         email (str): User email address (unique)
@@ -29,31 +29,31 @@ class User(db.Model):
         created_at (datetime): User creation timestamp
         updated_at (datetime): Last update timestamp
     """
-    
+
     __tablename__ = 'users'
-    
+
     # Primary key
-    id = db.Column(db.String(36), primary_key=True, 
+    id = db.Column(db.String(36), primary_key=True,
                    default=lambda: str(uuid.uuid4()))
-    
+
     # User information
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     first_name = db.Column(db.String(50), nullable=True)
     last_name = db.Column(db.String(50), nullable=True)
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
-    
+
     # Timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, 
-                          nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, 
-                          onupdate=datetime.utcnow, nullable=False)
-    
-    def __init__(self, email, password, first_name=None, last_name=None, 
+    created_at = db.Column(db.DateTime, default=datetime.utcnow,
+                           nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
+                           onupdate=datetime.utcnow, nullable=False)
+
+    def __init__(self, email, password, first_name=None, last_name=None,
                  is_admin=False):
         """
         Initialize a new user with password hashing.
-        
+
         Args:
             email (str): User email address
             password (str): Plain text password (will be hashed)
@@ -67,37 +67,37 @@ class User(db.Model):
         self.first_name = first_name
         self.last_name = last_name
         self.is_admin = is_admin
-    
+
     def _hash_password(self, password):
         """
         Hash a password using bcrypt.
-        
+
         Args:
             password (str): Plain text password
-            
+
         Returns:
             str: Hashed password
         """
         return bcrypt.generate_password_hash(password).decode('utf-8')
-    
+
     def verify_password(self, password):
         """
         Verify a password against the stored hash.
-        
+
         Args:
             password (str): Plain text password to verify
-            
+
         Returns:
             bool: True if password matches, False otherwise
         """
         return bcrypt.check_password_hash(self.password_hash, password)
-    
+
     def to_dict(self):
         """
         Convert user object to dictionary for JSON serialization.
-        
+
         Note: Password hash is intentionally excluded for security.
-        
+
         Returns:
             dict: User data without password information
         """
@@ -108,34 +108,34 @@ class User(db.Model):
             'last_name': self.last_name,
             'is_admin': self.is_admin,
             'created_at': (self.created_at.isoformat()
-                          if self.created_at else None),
+                           if self.created_at else None),
             'updated_at': (self.updated_at.isoformat()
-                          if self.updated_at else None)
+                           if self.updated_at else None)
         }
-    
+
     def update_password(self, new_password):
         """
         Update user password with new hash.
-        
+
         Args:
             new_password (str): New plain text password
         """
         self.password_hash = self._hash_password(new_password)
         self.updated_at = datetime.utcnow()
-    
+
     @classmethod
-    def create_user(cls, email, password, first_name=None, last_name=None, 
-                   is_admin=False):
+    def create_user(cls, email, password, first_name=None, last_name=None,
+                    is_admin=False):
         """
         Create a new user with password hashing.
-        
+
         Args:
             email (str): User email address
             password (str): Plain text password
             first_name (str, optional): User's first name
             last_name (str, optional): User's last name
             is_admin (bool, optional): Admin privileges flag
-            
+
         Returns:
             User: Newly created user instance
         """
@@ -147,33 +147,33 @@ class User(db.Model):
             is_admin=is_admin
         )
         return user
-    
+
     @classmethod
     def get_by_email(cls, email):
         """
         Get user by email address.
-        
+
         Args:
             email (str): User email address
-            
+
         Returns:
             User: User instance if found, None otherwise
         """
         return cls.query.filter_by(email=email).first()
-    
+
     @classmethod
     def get_by_id(cls, user_id):
         """
         Get user by ID.
-        
+
         Args:
             user_id (str): User ID
-            
+
         Returns:
             User: User instance if found, None otherwise
         """
         return cls.query.get(user_id)
-    
+
     def __repr__(self):
         """String representation of the user."""
-        return f'<User {self.email}>' 
+        return f'<User {self.email}>'
