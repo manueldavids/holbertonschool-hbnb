@@ -1,0 +1,23 @@
+"""
+API blueprint for the HBnB application.
+Registers all API namespaces and routes.
+"""
+
+from flask import Blueprint
+from flask_restx import Api
+
+# Create the main API blueprint
+api_bp = Blueprint('api', __name__)
+
+# Create the Flask-RESTX API instance
+api = Api(
+    api_bp,
+    title='HBnB API',
+    version='1.0',
+    description='A RESTful API for HBnB application',
+    doc='/docs'
+)
+
+# Import and register namespaces
+from api.v1.auth import api as auth_api
+api.add_namespace(auth_api, path='/auth')
