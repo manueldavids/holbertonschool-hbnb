@@ -23,12 +23,12 @@ EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
 # Model for input validation
 login_model = api.model('Login', {
     'email': fields.String(
-        required=True, 
+        required=True,
         description='User email address',
         example='user@example.com'
     ),
     'password': fields.String(
-        required=True, 
+        required=True,
         description='User password',
         example='securepassword123'
     )
@@ -54,17 +54,19 @@ protected_response_model = api.model('ProtectedResponse', {
 # Model for error responses
 error_model = api.model('Error', {
     'error': fields.String(description='Error message'),
-    'details': fields.String(description='Additional error details', required=False)
+    'details': fields.String(
+        description='Additional error details', required=False
+    )
 })
 
 
 def validate_email(email):
     """
     Validate email format.
-    
+
     Args:
         email (str): Email to validate
-        
+
     Returns:
         bool: True if valid, False otherwise
     """
@@ -76,23 +78,23 @@ def validate_email(email):
 def validate_credentials(email, password):
     """
     Validate login credentials format.
-    
+
     Args:
         email (str): Email to validate
         password (str): Password to validate
-        
+
     Returns:
         tuple: (is_valid, error_message)
     """
     if not email or not password:
         return False, "Email and password are required"
-    
+
     if not validate_email(email):
         return False, "Invalid email format"
-    
+
     if not isinstance(password, str) or len(password) < 1:
         return False, "Password is required"
-    
+
     return True, None
 
 
