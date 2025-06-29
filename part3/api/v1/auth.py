@@ -3,6 +3,7 @@ JWT Authentication endpoints for the HBnB API.
 Handles user login, token generation, and protected endpoints.
 """
 
+import re
 from flask_restx import Namespace, Resource, fields
 from flask_jwt_extended import (
     create_access_token, jwt_required, get_jwt_identity,
@@ -16,10 +17,21 @@ from app.models.user import User
 
 api = Namespace('auth', description='Authentication operations')
 
+# Email validation regex
+EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+
 # Model for input validation
 login_model = api.model('Login', {
-    'email': fields.String(required=True, description='User email'),
-    'password': fields.String(required=True, description='User password')
+    'email': fields.String(
+        required=True, 
+        description='User email address',
+        example='user@example.com'
+    ),
+    'password': fields.String(
+        required=True, 
+        description='User password',
+        example='securepassword123'
+    )
 })
 
 # Model for response validation
@@ -39,13 +51,58 @@ protected_response_model = api.model('ProtectedResponse', {
     'is_admin': fields.Boolean(description='User admin status')
 })
 
+# Model for error responses
+error_model = api.model('Error', {
+    'error': fields.String(description='Error message'),
+    'details': fields.String(description='Additional error details', required=False)
+})
+
+
+def validate_email(email):
+    """
+    Validate email format.
+    
+    Args:
+        email (str): Email to validate
+        
+    Returns:
+        bool: True if valid, False otherwise
+    """
+    if not email or not isinstance(email, str):
+        return False
+    return bool(EMAIL_REGEX.match(email.strip()))
+
+
+def validate_credentials(email, password):
+    """
+    Validate login credentials format.
+    
+    Args:
+        email (str): Email to validate
+        password (str): Password to validate
+        
+    Returns:
+        tuple: (is_valid, error_message)
+    """
+    if not email or not password:
+        return False, "Email and password are required"
+    
+    if not validate_email(email):
+        return False, "Invalid email format"
+    
+    if not isinstance(password, str) or len(password) < 1:
+        return False, "Password is required"
+    
+    return True, None
+
 
 @api.route('/login')
 class Login(Resource):
     @api.expect(login_model)
     @api.response(200, 'Login successful', token_response_model)
-    @api.response(401, 'Invalid credentials')
-    @api.response(400, 'Bad request')
+    @api.response(401, 'Invalid credentials', error_model)
+    @api.response(400, 'Bad request', error_model)
+    @api.response(500, 'Internal server error', error_model)
     def post(self):
         """
         Authenticate user and return JWT tokens.
@@ -57,37 +114,53 @@ class Login(Resource):
             # Get credentials from request payload
             credentials = api.payload
 
-            # Validate required fields
-            if not credentials or 'email' not in credentials or \
-               'password' not in credentials:
-                return {'error': 'Email and password are required'}, 400
+            # Validate request body
+            if not credentials:
+                return {
+                    'error': 'Request body is required'
+                }, 400
 
-            email = credentials['email']
-            password = credentials['password']
+            email = credentials.get('email')
+            password = credentials.get('password')
+
+            # Validate credentials format
+            is_valid, error_message = validate_credentials(email, password)
+            if not is_valid:
+                return {
+                    'error': error_message
+                }, 400
 
             # Step 1: Retrieve the user based on the provided email
             user = User.get_by_email(email)
 
             # Step 2: Check if the user exists and the password is correct
             if not user or not user.verify_password(password):
-                return {'error': 'Invalid credentials'}, 401
+                return {
+                    'error': 'Invalid credentials'
+                }, 401
 
             # Step 3: Create JWT tokens with user claims
-            access_token = create_access_token(
-                identity=str(user.id),
-                additional_claims={
-                    'is_admin': user.is_admin
-                },
-                expires_delta=timedelta(hours=1)
-            )
+            try:
+                access_token = create_access_token(
+                    identity=str(user.id),
+                    additional_claims={
+                        'is_admin': user.is_admin
+                    },
+                    expires_delta=timedelta(hours=1)
+                )
 
-            refresh_token = create_refresh_token(
-                identity=str(user.id),
-                additional_claims={
-                    'is_admin': user.is_admin
-                },
-                expires_delta=timedelta(days=30)
-            )
+                refresh_token = create_refresh_token(
+                    identity=str(user.id),
+                    additional_claims={
+                        'is_admin': user.is_admin
+                    },
+                    expires_delta=timedelta(days=30)
+                )
+            except Exception as e:
+                return {
+                    'error': 'Token generation failed',
+                    'details': str(e)
+                }, 500
 
             # Step 4: Return JWT tokens to the client
             return {
@@ -98,14 +171,18 @@ class Login(Resource):
             }, 200
 
         except Exception as e:
-            return {'error': f'Authentication failed: {str(e)}'}, 500
+            return {
+                'error': 'Authentication failed',
+                'details': str(e)
+            }, 500
 
 
 @api.route('/refresh')
 class TokenRefresh(Resource):
     @jwt_required(refresh=True)
     @api.response(200, 'Token refreshed', token_response_model)
-    @api.response(401, 'Invalid refresh token')
+    @api.response(401, 'Invalid refresh token', error_model)
+    @api.response(500, 'Internal server error', error_model)
     def post(self):
         """
         Refresh JWT access token using refresh token.
@@ -118,14 +195,27 @@ class TokenRefresh(Resource):
             current_user_id = get_jwt_identity()
             current_claims = get_jwt()
 
+            # Validate user still exists
+            user = User.get_by_id(current_user_id)
+            if not user:
+                return {
+                    'error': 'User not found'
+                }, 401
+
             # Create new access token
-            access_token = create_access_token(
-                identity=current_user_id,
-                additional_claims={
-                    'is_admin': current_claims.get('is_admin', False)
-                },
-                expires_delta=timedelta(hours=1)
-            )
+            try:
+                access_token = create_access_token(
+                    identity=current_user_id,
+                    additional_claims={
+                        'is_admin': current_claims.get('is_admin', False)
+                    },
+                    expires_delta=timedelta(hours=1)
+                )
+            except Exception as e:
+                return {
+                    'error': 'Token generation failed',
+                    'details': str(e)
+                }, 500
 
             return {
                 'access_token': access_token,
@@ -134,14 +224,18 @@ class TokenRefresh(Resource):
             }, 200
 
         except Exception as e:
-            return {'error': f'Token refresh failed: {str(e)}'}, 500
+            return {
+                'error': 'Token refresh failed',
+                'details': str(e)
+            }, 500
 
 
 @api.route('/protected')
 class ProtectedResource(Resource):
     @jwt_required()
     @api.response(200, 'Access granted', protected_response_model)
-    @api.response(401, 'Invalid or missing token')
+    @api.response(401, 'Invalid or missing token', error_model)
+    @api.response(500, 'Internal server error', error_model)
     def get(self):
         """
         A protected endpoint that requires a valid JWT token.
@@ -154,6 +248,13 @@ class ProtectedResource(Resource):
             current_user_id = get_jwt_identity()
             current_claims = get_jwt()
 
+            # Validate user still exists
+            user = User.get_by_id(current_user_id)
+            if not user:
+                return {
+                    'error': 'User not found'
+                }, 401
+
             # Extract user information from token claims
             is_admin = current_claims.get('is_admin', False)
 
@@ -165,7 +266,8 @@ class ProtectedResource(Resource):
 
         except Exception as e:
             return {
-                'error': f'Protected resource access failed: {str(e)}'
+                'error': 'Protected resource access failed',
+                'details': str(e)
             }, 500
 
 
@@ -173,7 +275,8 @@ class ProtectedResource(Resource):
 class Logout(Resource):
     @jwt_required()
     @api.response(200, 'Logout successful')
-    @api.response(401, 'Invalid token')
+    @api.response(401, 'Invalid token', error_model)
+    @api.response(500, 'Internal server error', error_model)
     def post(self):
         """
         Logout endpoint (token invalidation).
@@ -188,7 +291,13 @@ class Logout(Resource):
             # In a real implementation, you would add this token to a blacklist
             # blacklist.add(jti)
 
-            return {'message': 'Successfully logged out'}, 200
+            return {
+                'message': 'Successfully logged out',
+                'token_id': jti
+            }, 200
 
         except Exception as e:
-            return {'error': f'Logout failed: {str(e)}'}, 500
+            return {
+                'error': 'Logout failed',
+                'details': str(e)
+            }, 500
