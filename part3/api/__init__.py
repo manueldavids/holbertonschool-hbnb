@@ -21,6 +21,8 @@ api = Api(
 # Import and register namespaces
 from api.v1.auth import api as auth_api
 from api.v1.users import api as users_api
+from api.v1.places import api as places_api
 
 api.add_namespace(auth_api, path='/auth')
 api.add_namespace(users_api, path='/users')
+api.add_namespace(places_api, path='/places')
