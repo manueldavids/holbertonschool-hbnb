@@ -72,7 +72,10 @@ place_response_model = api.model('PlaceResponse', {
 # Model for error responses
 error_model = api.model('Error', {
     'error': fields.String(description='Error message'),
-    'details': fields.String(description='Additional error details', required=False)
+    'details': fields.String(
+        description='Additional error details',
+        required=False
+    )
 })
 
 
@@ -81,7 +84,7 @@ class Place:
     Place model for demonstration purposes.
     In a real implementation, this would be a SQLAlchemy model.
     """
-    
+
     def __init__(self, id, name, description, address, price_per_night,
                  max_guests, latitude, longitude, owner_id):
         self.id = id
@@ -95,7 +98,7 @@ class Place:
         self.owner_id = owner_id
         self.created_at = None
         self.updated_at = None
-    
+
     def to_dict(self):
         """Convert place object to dictionary."""
         return {
@@ -146,11 +149,11 @@ def update_place(place_id, place_data):
     place = places_db.get(place_id)
     if not place:
         return None
-    
+
     for field, value in place_data.items():
         if hasattr(place, field) and value is not None:
             setattr(place, field, value)
-    
+
     return place
 
 
@@ -175,7 +178,8 @@ class PlacesList(Resource):
         """
         Get all places (public endpoint).
 
-        This endpoint returns all places and is accessible without authentication.
+        This endpoint returns all places and is accessible without
+        authentication.
         """
         try:
             places = get_all_places()
@@ -205,7 +209,7 @@ class PlacesList(Resource):
         try:
             # Get current user identity
             current_user_id = get_jwt_identity()
-            
+
             # Verify user exists
             user = User.get_by_id(current_user_id)
             if not user:
@@ -244,7 +248,8 @@ class PlaceResource(Resource):
         """
         Get place by ID (public endpoint).
 
-        This endpoint returns a specific place and is accessible without authentication.
+        This endpoint returns a specific place and is accessible without
+        authentication.
         """
         try:
             # Validate place_id
@@ -293,7 +298,7 @@ class PlaceResource(Resource):
 
             # Get current user identity
             current_user_id = get_jwt_identity()
-            
+
             # Verify user exists
             user = User.get_by_id(current_user_id)
             if not user:
@@ -351,7 +356,7 @@ class PlaceResource(Resource):
 
             # Get current user identity
             current_user_id = get_jwt_identity()
-            
+
             # Verify user exists
             user = User.get_by_id(current_user_id)
             if not user:
@@ -388,4 +393,4 @@ class PlaceResource(Resource):
             return {
                 'error': 'Failed to delete place',
                 'details': str(e)
-            }, 500 
+            }, 500
