@@ -326,7 +326,7 @@ class UserResource(Resource):
 class CurrentUser(Resource):
     @jwt_required()
     @api.response(200, 'Current user retrieved successfully',
-                 user_response_model)
+                  user_response_model)
     @api.response(404, 'User not found', error_model)
     @api.response(500, 'Internal server error', error_model)
     def get(self):
