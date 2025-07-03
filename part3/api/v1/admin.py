@@ -4,13 +4,19 @@ Handles admin-only operations with role-based access control.
 """
 import re
 from flask_restx import Namespace, Resource, fields
-from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+from flask_jwt_extended import jwt_required
 from sqlalchemy.exc import IntegrityError
 from app.models.user import User, db
 from app.models.amenity import Amenity
+from api.v1.utils import (
+    get_current_admin_user, 
+    validate_email, 
+    validate_password,
+    handle_database_error
+)
 # Create API namespace
 api = Namespace('admin', description='Administrator operations')
-# Email validation regex
+# Email validation regex (keeping for backward compatibility)
 EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
 # Input validation models
 admin_user_creation_model = api.model('AdminUserCreation', {
@@ -122,49 +128,10 @@ def get_all_amenities():
     return Amenity.get_all()
 
 
-def validate_email(email):
-    """
-    Validate email format.
-    Args:
-        email (str): Email to validate
-    Returns:
-        bool: True if valid, False otherwise
-    """
-    if not email or not isinstance(email, str):
-        return False
-    return bool(EMAIL_REGEX.match(email.strip()))
+# Using centralized validation functions from utils.py
 
 
-def validate_password(password):
-    """
-    Validate password strength.
-    Args:
-        password (str): Password to validate
-    Returns:
-        tuple: (is_valid, error_message)
-    """
-    if not password or not isinstance(password, str):
-        return False, "Password is required"
-    if len(password) < 6:
-        return False, "Password must be at least 6 characters long"
-    return True, None
-
-
-def get_current_admin_user():
-    """
-    Get current authenticated user and verify admin privileges.
-    Returns:
-        User: Current admin user instance or None
-    """
-    try:
-        current_user_id = get_jwt_identity()
-        current_claims = get_jwt()
-        is_admin = current_claims.get('is_admin', False)
-        if not is_admin:
-            return None
-        return User.get_by_id(current_user_id)
-    except Exception:
-        return None
+# Using centralized function from utils.py
 
 
 @api.route('/users')

@@ -4,8 +4,9 @@ Handles CRUD operations for places with authenticated user access.
 """
 
 from flask_restx import Namespace, Resource, fields
-from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+from flask_jwt_extended import jwt_required
 from app.models.user import User
+from api.v1.utils import get_current_user, is_admin_user, check_ownership_or_admin
 
 # Create API namespace
 api = Namespace('places', description='Places management operations')
@@ -219,18 +220,7 @@ def validate_place_data(place_data):
     return True, ""
 
 
-def get_current_user():
-    """
-    Get current authenticated user.
-
-    Returns:
-        User: Current user instance or None
-    """
-    try:
-        current_user_id = get_jwt_identity()
-        return User.get_by_id(current_user_id)
-    except Exception:
-        return None
+# Using centralized function from utils.py
 
 
 @api.route('/')
@@ -378,10 +368,7 @@ class PlaceResource(Resource):
                 }, 404
 
             # Check ownership (admin bypass)
-            current_claims = get_jwt()
-            is_admin = current_claims.get('is_admin', False)
-
-            if place.owner_id != str(user.id) and not is_admin:
+            if not check_ownership_or_admin(place.owner_id, user.id):
                 return {
                     'error': 'Forbidden - you can only update your own places'
                 }, 403
@@ -446,10 +433,7 @@ class PlaceResource(Resource):
                 }, 404
 
             # Check ownership (admin bypass)
-            current_claims = get_jwt()
-            is_admin = current_claims.get('is_admin', False)
-
-            if place.owner_id != str(user.id) and not is_admin:
+            if not check_ownership_or_admin(place.owner_id, user.id):
                 return {
                     'error': 'Forbidden - you can only delete your own places'
                 }, 403
