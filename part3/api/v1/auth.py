@@ -14,11 +14,10 @@ from datetime import timedelta
 
 # Import the User model
 from app.models.user import User
+from .response_utils import APIResponse, handle_exceptions
+from .validation_utils import ValidationUtils
 
 api = Namespace('auth', description='Authentication operations')
-
-# Email validation regex
-EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
 
 # Model for input validation
 login_model = api.model('Login', {
@@ -60,21 +59,6 @@ error_model = api.model('Error', {
 })
 
 
-def validate_email(email):
-    """
-    Validate email format.
-
-    Args:
-        email (str): Email to validate
-
-    Returns:
-        bool: True if valid, False otherwise
-    """
-    if not email or not isinstance(email, str):
-        return False
-    return bool(EMAIL_REGEX.match(email.strip()))
-
-
 def validate_credentials(email, password):
     """
     Validate login credentials format.
@@ -89,7 +73,8 @@ def validate_credentials(email, password):
     if not email or not password:
         return False, "Email and password are required"
 
-    if not validate_email(email):
+    is_valid, error = ValidationUtils.validate_email(email)
+    if not is_valid:
         return False, "Invalid email format"
 
     if not isinstance(password, str) or len(password) < 1:
@@ -105,6 +90,7 @@ class Login(Resource):
     @api.response(401, 'Invalid credentials', error_model)
     @api.response(400, 'Bad request', error_model)
     @api.response(500, 'Internal server error', error_model)
+    @handle_exceptions
     def post(self):
         """
         Authenticate user and return JWT tokens.
@@ -112,71 +98,55 @@ class Login(Resource):
         This endpoint validates user credentials and generates
         JWT access and refresh tokens upon successful authentication.
         """
+        # Get credentials from request payload
+        credentials = api.payload
+
+        # Validate request body
+        if not credentials:
+            return APIResponse.bad_request("Request body is required")
+
+        email = credentials.get('email')
+        password = credentials.get('password')
+
+        # Validate credentials format
+        is_valid, error_message = validate_credentials(email, password)
+        if not is_valid:
+            return APIResponse.bad_request(error_message)
+
+        # Step 1: Retrieve the user based on the provided email
+        user = User.get_by_email(email)
+
+        # Step 2: Check if the user exists and the password is correct
+        if not user or not user.verify_password(password):
+            return APIResponse.unauthorized("Invalid credentials")
+
+        # Step 3: Create JWT tokens with user claims
         try:
-            # Get credentials from request payload
-            credentials = api.payload
+            access_token = create_access_token(
+                identity=str(user.id),
+                additional_claims={
+                    'is_admin': user.is_admin
+                },
+                expires_delta=timedelta(hours=1)
+            )
 
-            # Validate request body
-            if not credentials:
-                return {
-                    'error': 'Request body is required'
-                }, 400
-
-            email = credentials.get('email')
-            password = credentials.get('password')
-
-            # Validate credentials format
-            is_valid, error_message = validate_credentials(email, password)
-            if not is_valid:
-                return {
-                    'error': error_message
-                }, 400
-
-            # Step 1: Retrieve the user based on the provided email
-            user = User.get_by_email(email)
-
-            # Step 2: Check if the user exists and the password is correct
-            if not user or not user.verify_password(password):
-                return {
-                    'error': 'Invalid credentials'
-                }, 401
-
-            # Step 3: Create JWT tokens with user claims
-            try:
-                access_token = create_access_token(
-                    identity=str(user.id),
-                    additional_claims={
-                        'is_admin': user.is_admin
-                    },
-                    expires_delta=timedelta(hours=1)
-                )
-
-                refresh_token = create_refresh_token(
-                    identity=str(user.id),
-                    additional_claims={
-                        'is_admin': user.is_admin
-                    },
-                    expires_delta=timedelta(days=30)
-                )
-            except Exception as e:
-                return {
-                    'error': 'Token generation failed',
-                    'details': str(e)
-                }, 500
-
-            # Step 4: Return JWT tokens to the client
-            return {
-                'access_token': access_token,
-                'refresh_token': refresh_token,
-                'token_type': 'Bearer',
-                'expires_in': 3600  # 1 hour in seconds
-            }, 200
-
+            refresh_token = create_refresh_token(
+                identity=str(user.id),
+                additional_claims={
+                    'is_admin': user.is_admin
+                },
+                expires_delta=timedelta(days=30)
+            )
         except Exception as e:
-            return {
-                'error': 'Authentication failed',
-                'details': str(e)
-            }, 500
+            return APIResponse.internal_error("Token generation failed", str(e))
+
+        # Step 4: Return JWT tokens to the client
+        return APIResponse.success({
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+            'token_type': 'Bearer',
+            'expires_in': 3600  # 1 hour in seconds
+        }, "Login successful")
 
 
 @api.route('/refresh')

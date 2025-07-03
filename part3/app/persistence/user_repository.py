@@ -292,6 +292,45 @@ class UserRepository(Repository):
                 f"Error getting users by admin status {is_admin}: {e}")
             raise
 
+    def update_user_password(self, user_id: str, new_password: str) -> bool:
+        """
+        Update user password.
+
+        Args:
+            user_id (str): User ID to update
+            new_password (str): New password
+
+        Returns:
+            bool: True if update was successful, False otherwise
+
+        Raises:
+            SQLAlchemyError: If database operation fails
+        """
+        try:
+            user = self.get_user_by_id(user_id)
+            if not user:
+                return False
+
+            # Validate password strength
+            if not new_password or len(new_password) < 6:
+                raise ValueError("Password must be at least 6 characters long")
+
+            # Update password
+            user.update_password(new_password)
+
+            # Save changes
+            db.session.commit()
+            return True
+
+        except ValueError as e:
+            db.session.rollback()
+            self._log_error(f"Validation error updating password for user {user_id}: {e}")
+            raise
+        except SQLAlchemyError as e:
+            db.session.rollback()
+            self._log_error(f"Error updating password for user {user_id}: {e}")
+            raise
+
     def _validate_user_data(self, user_data: Dict[str, Any]) -> None:
         """
         Validate user data before creation.

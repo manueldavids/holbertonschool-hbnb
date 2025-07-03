@@ -33,4 +33,4 @@ api.add_namespace(admin_api, path='/admin')
 from api.v1.users import users_bp
 
 # Register Flask blueprints directly
-api_bp.register_blueprint(users_bp, url_prefix='/users')
+api_bp.register_blueprint(users_bp, url_prefix='')
