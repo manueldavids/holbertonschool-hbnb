@@ -7,6 +7,7 @@ from flask_restx import Namespace, Resource, fields
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from sqlalchemy.exc import IntegrityError
 from app.models.user import User, db
+from app.models.amenity import Amenity
 # Create API namespace
 api = Namespace('admin', description='Administrator operations')
 # Email validation regex
@@ -84,74 +85,41 @@ error_model = api.model('Error', {
 })
 
 
-class Amenity:
-    """
-    Amenity model for demonstration purposes.
-    In a real implementation, this would be a SQLAlchemy model.
-    """
-
-    def __init__(self, id, name, description):
-        self.id = id
-        self.name = name
-        self.description = description
-        self.created_at = None
-        self.updated_at = None
-
-    def to_dict(self):
-        """Convert amenity object to dictionary."""
-        return {
-            'id': self.id,
-            'name': self.name,
-            'description': self.description,
-            'created_at': self.created_at,
-            'updated_at': self.updated_at
-        }
-
-
-# Mock database for amenities
-amenities_db = {}
-
-
 def get_amenity_by_id(amenity_id):
-    """Get amenity by ID from mock database."""
-    return amenities_db.get(amenity_id)
+    """Get amenity by ID from database."""
+    return Amenity.get_by_id(amenity_id)
 
 
 def create_amenity(amenity_data):
-    """Create a new amenity in mock database."""
-    import uuid
-    amenity_id = str(uuid.uuid4())
-    amenity = Amenity(
-        id=amenity_id,
+    """Create a new amenity in database."""
+    return Amenity.create(
         name=amenity_data.get('name'),
         description=amenity_data.get('description')
     )
-    amenities_db[amenity_id] = amenity
-    return amenity
 
 
 def update_amenity(amenity_id, amenity_data):
-    """Update amenity in mock database."""
-    amenity = amenities_db.get(amenity_id)
+    """Update amenity in database."""
+    amenity = Amenity.get_by_id(amenity_id)
     if not amenity:
         return None
-    for field, value in amenity_data.items():
-        if hasattr(amenity, field) and value is not None:
-            setattr(amenity, field, value)
-    return amenity
+    if amenity.update_from_dict(amenity_data):
+        db.session.commit()
+        return amenity
+    return None
 
 
 def delete_amenity(amenity_id):
-    """Delete amenity from mock database."""
-    if amenity_id in amenities_db:
-        del amenities_db[amenity_id]
-        return True
-    return False
+    """Delete amenity from database."""
+    amenity = Amenity.get_by_id(amenity_id)
+    if not amenity:
+        return False
+    return amenity.delete()
 
 
 def get_all_amenities():
-    """Get all amenities from mock database."""
-    return list(amenities_db.values())
+    """Get all amenities from database."""
+    return Amenity.get_all()
 
 
 def validate_email(email):
