@@ -3,6 +3,7 @@ User model for the HBnB application.
 Handles user data and password hashing with bcrypt.
 """
 
+from .base_model import BaseModel
 import uuid
 from datetime import datetime
 from flask_bcrypt import Bcrypt
@@ -15,7 +16,6 @@ from app import db
 bcrypt = Bcrypt()
 
 # Import BaseModel
-from .base_model import BaseModel
 
 
 class User(BaseModel):
@@ -76,7 +76,7 @@ class User(BaseModel):
         """
         if not password:
             raise ValueError("Password cannot be empty")
-        
+
         return bcrypt.generate_password_hash(password).decode('utf-8')
 
     def verify_password(self, password):
@@ -91,7 +91,7 @@ class User(BaseModel):
         """
         if not password or not self.password_hash:
             return False
-        
+
         return bcrypt.check_password_hash(self.password_hash, password)
 
     def to_dict(self):
@@ -125,7 +125,7 @@ class User(BaseModel):
         """
         if not new_password:
             raise ValueError("New password cannot be empty")
-        
+
         self.password_hash = self._hash_password(new_password)
         self.update_timestamp()
 
@@ -137,7 +137,7 @@ class User(BaseModel):
             **kwargs: Fields to update (email, first_name, last_name, is_admin)
         """
         allowed_fields = {'email', 'first_name', 'last_name', 'is_admin'}
-        
+
         for field, value in kwargs.items():
             if field in allowed_fields:
                 if field == 'email' and value:
@@ -146,9 +146,9 @@ class User(BaseModel):
                     value = value.strip()
                 elif field == 'is_admin':
                     value = bool(value)
-                
+
                 setattr(self, field, value)
-        
+
         self.update_timestamp()
 
     @classmethod
@@ -172,7 +172,7 @@ class User(BaseModel):
         """
         if not email or not password:
             raise ValueError("Email and password are required")
-        
+
         user = cls(
             email=email,
             password=password,
@@ -195,7 +195,7 @@ class User(BaseModel):
         """
         if not email:
             return None
-        
+
         return cls.query.filter_by(email=email.lower().strip()).first()
 
     @classmethod
@@ -211,7 +211,7 @@ class User(BaseModel):
         """
         if not user_id:
             return None
-        
+
         return cls.query.get(user_id)
 
     @classmethod
@@ -231,7 +231,7 @@ class User(BaseModel):
             query = query.offset(offset)
         if limit:
             query = query.limit(limit)
-        
+
         return query.all()
 
     def __repr__(self):

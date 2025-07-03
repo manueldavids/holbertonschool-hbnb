@@ -223,52 +223,52 @@ class HBnBFacade:
             int: Total user count
         """
         return self.user_repo.count()
-    
+
     def authenticate_user(self, email: str, password: str) -> Optional[User]:
         """
         Authenticate user with email and password.
-        
+
         Args:
             email (str): User email
             password (str): User password
-            
+
         Returns:
             User: User instance if authentication successful, None otherwise
         """
         return self.user_repo.authenticate_user(email, password)
-    
+
     def update_user_password(self, user_id: str, new_password: str) -> bool:
         """
         Update user password.
-        
+
         Args:
             user_id (str): User ID to update
             new_password (str): New password
-            
+
         Returns:
             bool: True if update was successful
         """
         return self.user_repo.update_user_password(user_id, new_password)
-    
+
     def get_users_by_admin_status(self, is_admin: bool) -> List[User]:
         """
         Get users by admin status.
-        
+
         Args:
             is_admin (bool): Admin status to filter by
-            
+
         Returns:
             list: List of User instances with specified admin status
         """
         return self.user_repo.get_users_by_admin_status(is_admin)
-    
+
     def search_users(self, search_term: str) -> List[User]:
         """
         Search users by email, first name, or last name.
-        
+
         Args:
             search_term (str): Term to search for
-            
+
         Returns:
             list: List of User instances matching the search term
         """
