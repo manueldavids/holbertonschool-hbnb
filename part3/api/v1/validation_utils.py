@@ -6,6 +6,7 @@ Centralizes common validation logic and patterns.
 import re
 from typing import Tuple, Optional, Any, Dict
 from datetime import datetime
+from .response_utils import validate_pagination_params
 
 
 class ValidationUtils:
