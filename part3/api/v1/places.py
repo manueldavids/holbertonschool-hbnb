@@ -4,7 +4,7 @@ Handles CRUD operations for places with authenticated user access.
 """
 
 from flask_restx import Namespace, Resource, fields
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.models.user import User
 
 # Create API namespace
@@ -377,8 +377,11 @@ class PlaceResource(Resource):
                     'error': 'Place not found'
                 }, 404
 
-            # Check ownership
-            if place.owner_id != str(user.id):
+            # Check ownership (admin bypass)
+            current_claims = get_jwt()
+            is_admin = current_claims.get('is_admin', False)
+
+            if place.owner_id != str(user.id) and not is_admin:
                 return {
                     'error': 'Forbidden - you can only update your own places'
                 }, 403
@@ -442,8 +445,11 @@ class PlaceResource(Resource):
                     'error': 'Place not found'
                 }, 404
 
-            # Check ownership
-            if place.owner_id != str(user.id):
+            # Check ownership (admin bypass)
+            current_claims = get_jwt()
+            is_admin = current_claims.get('is_admin', False)
+
+            if place.owner_id != str(user.id) and not is_admin:
                 return {
                     'error': 'Forbidden - you can only delete your own places'
                 }, 403

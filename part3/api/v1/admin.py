@@ -2,19 +2,15 @@
 Administrator access endpoints for the HBnB API.
 Handles admin-only operations with role-based access control.
 """
-
 import re
 from flask_restx import Namespace, Resource, fields
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from sqlalchemy.exc import IntegrityError
 from app.models.user import User, db
-
 # Create API namespace
 api = Namespace('admin', description='Administrator operations')
-
 # Email validation regex
 EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
-
 # Input validation models
 admin_user_creation_model = api.model('AdminUserCreation', {
     'email': fields.String(
@@ -40,7 +36,6 @@ admin_user_creation_model = api.model('AdminUserCreation', {
         default=False
     )
 })
-
 admin_user_update_model = api.model('AdminUserUpdate', {
     'email': fields.String(description='User email address'),
     'password': fields.String(description='User password'),
@@ -48,7 +43,6 @@ admin_user_update_model = api.model('AdminUserUpdate', {
     'last_name': fields.String(description='User last name'),
     'is_admin': fields.Boolean(description='Admin privileges flag')
 })
-
 amenity_creation_model = api.model('AmenityCreation', {
     'name': fields.String(
         required=True,
@@ -60,12 +54,10 @@ amenity_creation_model = api.model('AmenityCreation', {
         example='High-speed wireless internet'
     )
 })
-
 amenity_update_model = api.model('AmenityUpdate', {
     'name': fields.String(description='Amenity name'),
     'description': fields.String(description='Amenity description')
 })
-
 # Response models
 user_response_model = api.model('UserResponse', {
     'id': fields.String(description='User ID'),
@@ -76,7 +68,6 @@ user_response_model = api.model('UserResponse', {
     'created_at': fields.String(description='User creation timestamp'),
     'updated_at': fields.String(description='Last update timestamp')
 })
-
 amenity_response_model = api.model('AmenityResponse', {
     'id': fields.String(description='Amenity ID'),
     'name': fields.String(description='Amenity name'),
@@ -84,7 +75,6 @@ amenity_response_model = api.model('AmenityResponse', {
     'created_at': fields.String(description='Creation timestamp'),
     'updated_at': fields.String(description='Last update timestamp')
 })
-
 error_model = api.model('Error', {
     'error': fields.String(description='Error message'),
     'details': fields.String(
@@ -145,11 +135,9 @@ def update_amenity(amenity_id, amenity_data):
     amenity = amenities_db.get(amenity_id)
     if not amenity:
         return None
-
     for field, value in amenity_data.items():
         if hasattr(amenity, field) and value is not None:
             setattr(amenity, field, value)
-
     return amenity
 
 
@@ -169,10 +157,8 @@ def get_all_amenities():
 def validate_email(email):
     """
     Validate email format.
-    
     Args:
         email (str): Email to validate
-        
     Returns:
         bool: True if valid, False otherwise
     """
@@ -184,26 +170,21 @@ def validate_email(email):
 def validate_password(password):
     """
     Validate password strength.
-    
     Args:
         password (str): Password to validate
-        
     Returns:
         tuple: (is_valid, error_message)
     """
     if not password or not isinstance(password, str):
         return False, "Password is required"
-    
     if len(password) < 6:
         return False, "Password must be at least 6 characters long"
-    
     return True, None
 
 
 def get_current_admin_user():
     """
     Get current authenticated user and verify admin privileges.
-    
     Returns:
         User: Current admin user instance or None
     """
@@ -211,10 +192,8 @@ def get_current_admin_user():
         current_user_id = get_jwt_identity()
         current_claims = get_jwt()
         is_admin = current_claims.get('is_admin', False)
-        
         if not is_admin:
             return None
-        
         return User.get_by_id(current_user_id)
     except Exception:
         return None
@@ -223,7 +202,6 @@ def get_current_admin_user():
 @api.route('/users')
 class AdminUserManagement(Resource):
     """Resource for admin user management operations."""
-
     @jwt_required()
     @api.expect(admin_user_creation_model)
     @api.response(201, 'User created successfully', user_response_model)
@@ -235,7 +213,6 @@ class AdminUserManagement(Resource):
     def post(self):
         """
         Create a new user (admin only).
-
         This endpoint allows administrators to create new user accounts.
         Only users with admin privileges can access this endpoint.
         """
@@ -246,49 +223,40 @@ class AdminUserManagement(Resource):
                 return {
                     'error': 'Forbidden - admin access required'
                 }, 403
-
             # Get user data from request payload
             user_data = api.payload
-
             # Validate required fields
             if not user_data:
                 return {
                     'error': 'Request body is required'
                 }, 400
-
             email = user_data.get('email')
             password = user_data.get('password')
-
             if not email or not password:
                 return {
                     'error': 'Email and password are required'
                 }, 400
-
             # Validate email format
             if not validate_email(email):
                 return {
                     'error': 'Invalid email format'
                 }, 400
-
             # Validate password strength
             is_valid_password, password_error = validate_password(password)
             if not is_valid_password:
                 return {
                     'error': password_error
                 }, 400
-
             # Extract optional fields
             first_name = user_data.get('first_name')
             last_name = user_data.get('last_name')
             is_admin = user_data.get('is_admin', False)
-
             # Check if user already exists
             existing_user = User.get_by_email(email)
             if existing_user:
                 return {
                     'error': 'User with this email already exists'
                 }, 409
-
             # Create new user with password hashing
             try:
                 new_user = User.create_user(
@@ -302,7 +270,6 @@ class AdminUserManagement(Resource):
                 return {
                     'error': str(e)
                 }, 400
-
             # Save to database
             try:
                 db.session.add(new_user)
@@ -312,10 +279,8 @@ class AdminUserManagement(Resource):
                 return {
                     'error': 'User with this email already exists'
                 }, 409
-
             # Return user data (password excluded)
             return new_user.to_dict(), 201
-
         except Exception as e:
             db.session.rollback()
             return {
@@ -331,7 +296,6 @@ class AdminUserManagement(Resource):
     def get(self):
         """
         Get all users (admin only).
-
         This endpoint returns a list of all users, excluding password hashes.
         Only admin users can access this endpoint.
         """
@@ -342,16 +306,13 @@ class AdminUserManagement(Resource):
                 return {
                     'error': 'Forbidden - admin access required'
                 }, 403
-
             # Get all users
             users = User.get_all_users()
-            
             # Return user data (passwords excluded)
             return {
                 'users': [user.to_dict() for user in users],
                 'total': len(users)
             }, 200
-
         except Exception as e:
             return {
                 'error': 'Failed to retrieve users',
@@ -362,7 +323,6 @@ class AdminUserManagement(Resource):
 @api.route('/users/<string:user_id>')
 class AdminUserResource(Resource):
     """Resource for individual admin user operations."""
-
     @jwt_required()
     @api.expect(admin_user_update_model)
     @api.response(200, 'User updated successfully', user_response_model)
@@ -375,7 +335,6 @@ class AdminUserResource(Resource):
     def put(self, user_id):
         """
         Update any user's details (admin only).
-
         This endpoint allows administrators to update any user's data,
         including email and password. Only users with admin privileges
         can access this endpoint.
@@ -387,60 +346,52 @@ class AdminUserResource(Resource):
                 return {
                     'error': 'Forbidden - admin access required'
                 }, 403
-
             # Validate user_id
             if not user_id:
                 return {
                     'error': 'User ID is required'
                 }, 400
-
             # Get user from database
             user = User.get_by_id(user_id)
             if not user:
                 return {
                     'error': 'User not found'
                 }, 404
-
             # Get update data from request payload
             update_data = api.payload
             if not update_data:
                 return {
                     'error': 'Update data is required'
                 }, 400
-
             # Handle email update with validation
             if 'email' in update_data and update_data['email']:
                 new_email = update_data['email']
-                
                 # Validate email format
                 if not validate_email(new_email):
                     return {
                         'error': 'Invalid email format'
                     }, 400
-                
                 # Check if email is already taken by another user
                 existing_user = User.get_by_email(new_email)
                 if existing_user and str(existing_user.id) != user_id:
                     return {
                         'error': 'Email already exists'
                     }, 409
-
             # Handle password update with validation
             if 'password' in update_data and update_data['password']:
-                is_valid_password, password_error = validate_password(update_data['password'])
+                password = update_data['password']
+                is_valid_password, password_error = validate_password(password)
                 if not is_valid_password:
                     return {
                         'error': password_error
                     }, 400
-                
                 # Hash the new password
                 user.set_password(update_data['password'])
-
             # Update other user fields
             for field, value in update_data.items():
-                if hasattr(user, field) and value is not None and field != 'password':
+                if (hasattr(user, field) and value is not None and
+                        field != 'password'):
                     setattr(user, field, value)
-
             # Save changes to database
             try:
                 db.session.commit()
@@ -449,10 +400,8 @@ class AdminUserResource(Resource):
                 return {
                     'error': 'Failed to update user data'
                 }, 500
-
             # Return updated user data (password excluded)
             return user.to_dict(), 200
-
         except Exception as e:
             db.session.rollback()
             return {
@@ -464,7 +413,6 @@ class AdminUserResource(Resource):
 @api.route('/amenities')
 class AdminAmenityManagement(Resource):
     """Resource for admin amenity management operations."""
-
     @jwt_required()
     @api.expect(amenity_creation_model)
     @api.response(201, 'Amenity created successfully', amenity_response_model)
@@ -475,7 +423,6 @@ class AdminAmenityManagement(Resource):
     def post(self):
         """
         Create a new amenity (admin only).
-
         This endpoint allows administrators to create new amenities.
         Only users with admin privileges can access this endpoint.
         """
@@ -486,25 +433,20 @@ class AdminAmenityManagement(Resource):
                 return {
                     'error': 'Forbidden - admin access required'
                 }, 403
-
             # Get amenity data from request payload
             amenity_data = api.payload
-
             # Validate required fields
             if not amenity_data or 'name' not in amenity_data:
                 return {
                     'error': 'Amenity name is required'
                 }, 400
-
             # Create new amenity
             new_amenity = create_amenity(amenity_data)
             if not new_amenity:
                 return {
                     'error': 'Failed to create amenity'
                 }, 500
-
             return new_amenity.to_dict(), 201
-
         except Exception as e:
             return {
                 'error': 'Failed to create amenity',
@@ -519,7 +461,6 @@ class AdminAmenityManagement(Resource):
     def get(self):
         """
         Get all amenities (admin only).
-
         This endpoint returns a list of all amenities.
         Only admin users can access this endpoint.
         """
@@ -530,15 +471,12 @@ class AdminAmenityManagement(Resource):
                 return {
                     'error': 'Forbidden - admin access required'
                 }, 403
-
             # Get all amenities
             amenities = get_all_amenities()
-            
             return {
                 'amenities': [amenity.to_dict() for amenity in amenities],
                 'total': len(amenities)
             }, 200
-
         except Exception as e:
             return {
                 'error': 'Failed to retrieve amenities',
@@ -549,7 +487,6 @@ class AdminAmenityManagement(Resource):
 @api.route('/amenities/<string:amenity_id>')
 class AdminAmenityResource(Resource):
     """Resource for individual admin amenity operations."""
-
     @jwt_required()
     @api.expect(amenity_update_model)
     @api.response(200, 'Amenity updated successfully', amenity_response_model)
@@ -561,7 +498,6 @@ class AdminAmenityResource(Resource):
     def put(self, amenity_id):
         """
         Update amenity (admin only).
-
         This endpoint allows administrators to update amenities.
         Only users with admin privileges can access this endpoint.
         """
@@ -572,36 +508,30 @@ class AdminAmenityResource(Resource):
                 return {
                     'error': 'Forbidden - admin access required'
                 }, 403
-
             # Validate amenity_id
             if not amenity_id:
                 return {
                     'error': 'Amenity ID is required'
                 }, 400
-
             # Get amenity from database
             amenity = get_amenity_by_id(amenity_id)
             if not amenity:
                 return {
                     'error': 'Amenity not found'
                 }, 404
-
             # Get update data from request payload
             update_data = api.payload
             if not update_data:
                 return {
                     'error': 'Update data is required'
                 }, 400
-
             # Update amenity
             updated_amenity = update_amenity(amenity_id, update_data)
             if not updated_amenity:
                 return {
                     'error': 'Failed to update amenity'
                 }, 500
-
             return updated_amenity.to_dict(), 200
-
         except Exception as e:
             return {
                 'error': 'Failed to update amenity',
@@ -618,7 +548,6 @@ class AdminAmenityResource(Resource):
     def delete(self, amenity_id):
         """
         Delete amenity (admin only).
-
         This endpoint allows administrators to delete amenities.
         Only users with admin privileges can access this endpoint.
         """
@@ -629,34 +558,29 @@ class AdminAmenityResource(Resource):
                 return {
                     'error': 'Forbidden - admin access required'
                 }, 403
-
             # Validate amenity_id
             if not amenity_id:
                 return {
                     'error': 'Amenity ID is required'
                 }, 400
-
             # Get amenity from database
             amenity = get_amenity_by_id(amenity_id)
             if not amenity:
                 return {
                     'error': 'Amenity not found'
                 }, 404
-
             # Delete amenity
             success = delete_amenity(amenity_id)
             if not success:
                 return {
                     'error': 'Failed to delete amenity'
                 }, 500
-
             return {
                 'message': 'Amenity deleted successfully',
                 'amenity_id': amenity_id
             }, 200
-
         except Exception as e:
             return {
                 'error': 'Failed to delete amenity',
                 'details': str(e)
-            }, 500 
+            }, 500

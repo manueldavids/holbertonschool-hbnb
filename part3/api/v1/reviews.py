@@ -4,7 +4,7 @@ Handles CRUD operations for reviews with authenticated user access.
 """
 
 from flask_restx import Namespace, Resource, fields
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.models.user import User
 
 # Create API namespace
@@ -374,8 +374,11 @@ class ReviewResource(Resource):
                     'error': 'Review not found'
                 }, 404
 
-            # Check ownership
-            if review.user_id != str(user.id):
+            # Check ownership (admin bypass)
+            current_claims = get_jwt()
+            is_admin = current_claims.get('is_admin', False)
+
+            if review.user_id != str(user.id) and not is_admin:
                 return {
                     'error': 'Forbidden - you can only update your own reviews'
                 }, 403
@@ -446,8 +449,11 @@ class ReviewResource(Resource):
                     'error': 'Review not found'
                 }, 404
 
-            # Check ownership
-            if review.user_id != str(user.id):
+            # Check ownership (admin bypass)
+            current_claims = get_jwt()
+            is_admin = current_claims.get('is_admin', False)
+
+            if review.user_id != str(user.id) and not is_admin:
                 return {
                     'error': 'Forbidden - you can only delete your own reviews'
                 }, 403
