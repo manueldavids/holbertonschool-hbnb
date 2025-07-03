@@ -35,22 +35,12 @@ class User(BaseModel):
 
     __tablename__ = 'users'
 
-    # Primary key
-    id = db.Column(db.String(36), primary_key=True,
-                   default=lambda: str(uuid.uuid4()))
-
     # User information
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     first_name = db.Column(db.String(50), nullable=True)
     last_name = db.Column(db.String(50), nullable=True)
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
-
-    # Timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow,
-                           nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
-                           onupdate=datetime.utcnow, nullable=False)
 
     def __init__(self, email, password, first_name=None, last_name=None,
                  is_admin=False):
@@ -64,7 +54,7 @@ class User(BaseModel):
             last_name (str, optional): User's last name
             is_admin (bool, optional): Admin privileges flag
         """
-        self.id = str(uuid.uuid4())
+        super().__init__()  # Initialize BaseModel
         self.email = email.lower().strip() if email else None
         self.password_hash = self._hash_password(password)
         self.first_name = first_name.strip() if first_name else None
