@@ -153,9 +153,11 @@ class BaseAPI(ABC):
         offset = request.args.get('offset', 0, type=int)
         
         # Validate pagination
-        pagination_error = ValidationUtils.validate_pagination_params(limit, offset)
-        if pagination_error:
-            return pagination_error
+        if limit is not None and limit < 0:
+            return APIResponse.bad_request("Limit must be positive")
+
+        if offset < 0:
+            return APIResponse.bad_request("Offset must be non-negative")
         
         # Get entities
         entities = self._get_all_entities_logic(limit, offset)
