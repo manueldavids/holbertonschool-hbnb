@@ -119,7 +119,7 @@ class SQLAlchemyRepository(Repository):
             db.session.commit()
         except Exception as e:
             db.session.rollback()
-            raise e
+            raise
 
     def get(self, obj_id: str) -> Optional[Any]:
         """
@@ -134,7 +134,7 @@ class SQLAlchemyRepository(Repository):
         try:
             return self.model.query.get(obj_id)
         except Exception as e:
-            print(f"Error getting object by ID: {str(e)}")
+            print(f"Error getting object by ID: {e}")
             return None
 
     def get_all(self) -> List[Any]:
@@ -147,7 +147,7 @@ class SQLAlchemyRepository(Repository):
         try:
             return self.model.query.all()
         except Exception as e:
-            print(f"Error getting all objects: {str(e)}")
+            print(f"Error getting all objects: {e}")
             return []
 
     def update(self, obj_id: str, data: Dict[str, Any]) -> Optional[Any]:
@@ -172,7 +172,7 @@ class SQLAlchemyRepository(Repository):
             return None
         except Exception as e:
             db.session.rollback()
-            print(f"Error updating object: {str(e)}")
+            print(f"Error updating object: {e}")
             return None
 
     def delete(self, obj_id: str) -> bool:
@@ -194,7 +194,7 @@ class SQLAlchemyRepository(Repository):
             return False
         except Exception as e:
             db.session.rollback()
-            print(f"Error deleting object: {str(e)}")
+            print(f"Error deleting object: {e}")
             return False
 
     def get_by_attribute(
@@ -215,7 +215,7 @@ class SQLAlchemyRepository(Repository):
             return self.model.query.filter_by(
                 **{attr_name: attr_value}).first()
         except Exception as e:
-            print(f"Error getting object by attribute: {str(e)}")
+            print(f"Error getting object by attribute: {e}")
             return None
 
     def get_by_attributes(self, filters: Dict[str, Any]) -> List[Any]:
@@ -231,7 +231,7 @@ class SQLAlchemyRepository(Repository):
         try:
             return self.model.query.filter_by(**filters).all()
         except Exception as e:
-            print(f"Error getting objects by attributes: {str(e)}")
+            print(f"Error getting objects by attributes: {e}")
             return []
 
     def count(self) -> int:
@@ -244,5 +244,5 @@ class SQLAlchemyRepository(Repository):
         try:
             return self.model.query.count()
         except Exception as e:
-            print(f"Error counting objects: {str(e)}")
+            print(f"Error counting objects: {e}")
             return 0
