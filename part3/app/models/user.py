@@ -6,7 +6,6 @@ Handles user data and password hashing with bcrypt.
 import uuid
 from datetime import datetime
 from flask_bcrypt import Bcrypt
-from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 
 # Import db from app.__init__
@@ -15,8 +14,11 @@ from app import db
 # Initialize bcrypt for password hashing
 bcrypt = Bcrypt()
 
+# Import BaseModel
+from .base_model import BaseModel
 
-class User(db.Model):
+
+class User(BaseModel):
     """
     User model with password hashing capabilities.
 
