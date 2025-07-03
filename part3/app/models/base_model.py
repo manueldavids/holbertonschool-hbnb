@@ -5,6 +5,7 @@ Provides common attributes and functionality for all models.
 
 import uuid
 from datetime import datetime
+from typing import Dict, Any
 from app import db
 
 
@@ -18,19 +19,25 @@ class BaseModel(db.Model):
         updated_at (datetime): Last update timestamp
     """
 
-    __abstract__ = True  # This ensures SQLAlchemy does not create a table for BaseModel
+    __abstract__ = True
 
-    # Primary key
-    id = db.Column(db.String(36), primary_key=True,
-                   default=lambda: str(uuid.uuid4()))
+    id = db.Column(
+        db.String(36),
+        primary_key=True,
+        default=lambda: str(uuid.uuid4())
+    )
 
     # Timestamps
-    created_at = db.Column(db.DateTime, default=datetime.utcnow,
-                           nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
-                           onupdate=datetime.utcnow, nullable=False)
+    created_at = db.Column(
+        db.DateTime, default=datetime.utcnow,
+        nullable=False
+    )
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow,
+        onupdate=datetime.utcnow, nullable=False
+    )
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         """
         Convert model object to dictionary for JSON serialization.
 
@@ -39,17 +46,29 @@ class BaseModel(db.Model):
         """
         return {
             'id': self.id,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+            'created_at': self._format_datetime(self.created_at),
+            'updated_at': self._format_datetime(self.updated_at)
         }
 
-    def update_timestamp(self):
+    def update_timestamp(self) -> None:
         """
         Update the updated_at timestamp.
         """
         self.updated_at = datetime.utcnow()
 
-    def __repr__(self):
+    def _format_datetime(self, dt: datetime) -> str:
+        """
+        Format datetime for JSON serialization.
+
+        Args:
+            dt (datetime): Datetime to format
+
+        Returns:
+            str: ISO formatted datetime string or None
+        """
+        return dt.isoformat() if dt else None
+
+    def __repr__(self) -> str:
         """
         String representation of the model.
 
@@ -57,3 +76,12 @@ class BaseModel(db.Model):
             str: Model representation
         """
         return f"<{self.__class__.__name__}(id={self.id})>"
+
+    def __str__(self) -> str:
+        """
+        String representation for display.
+
+        Returns:
+            str: Display string
+        """
+        return self.__repr__()

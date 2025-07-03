@@ -3,19 +3,14 @@ User model for the HBnB application.
 Handles user data and password hashing with bcrypt.
 """
 
-from .base_model import BaseModel
-import uuid
-from datetime import datetime
+from typing import Optional, Dict, Any
 from flask_bcrypt import Bcrypt
 from sqlalchemy.exc import IntegrityError
-
-# Import db from app.__init__
 from app import db
+from .base_model import BaseModel
 
 # Initialize bcrypt for password hashing
 bcrypt = Bcrypt()
-
-# Import BaseModel
 
 
 class User(BaseModel):
@@ -23,14 +18,11 @@ class User(BaseModel):
     User model with password hashing capabilities.
 
     Attributes:
-        id (str): Unique user identifier (UUID)
         email (str): User email address (unique)
         password_hash (str): Hashed password using bcrypt
         first_name (str): User's first name
         last_name (str): User's last name
         is_admin (bool): Admin privileges flag
-        created_at (datetime): User creation timestamp
-        updated_at (datetime): Last update timestamp
     """
 
     __tablename__ = 'users'
@@ -42,8 +34,13 @@ class User(BaseModel):
     last_name = db.Column(db.String(50), nullable=True)
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
 
-    def __init__(self, email, password, first_name=None, last_name=None,
-                 is_admin=False):
+    def __init__(
+            self,
+            email: str,
+            password: str,
+            first_name: Optional[str] = None,
+            last_name: Optional[str] = None,
+            is_admin: bool = False):
         """
         Initialize a new user with password hashing.
 
@@ -54,14 +51,73 @@ class User(BaseModel):
             last_name (str, optional): User's last name
             is_admin (bool, optional): Admin privileges flag
         """
-        super().__init__()  # Initialize BaseModel
-        self.email = email.lower().strip() if email else None
+        super().__init__()
+        self._validate_email(email)
+        self._validate_password(password)
+
+        self.email = self._normalize_email(email)
         self.password_hash = self._hash_password(password)
-        self.first_name = first_name.strip() if first_name else None
-        self.last_name = last_name.strip() if last_name else None
+        self.first_name = self._normalize_name(first_name)
+        self.last_name = self._normalize_name(last_name)
         self.is_admin = bool(is_admin)
 
-    def _hash_password(self, password):
+    def _validate_email(self, email: str) -> None:
+        """
+        Validate email format and presence.
+
+        Args:
+            email (str): Email to validate
+
+        Raises:
+            ValueError: If email is invalid
+        """
+        if not email or not isinstance(email, str):
+            raise ValueError("Email is required and must be a string")
+
+        if '@' not in email or '.' not in email:
+            raise ValueError("Invalid email format")
+
+    def _validate_password(self, password: str) -> None:
+        """
+        Validate password strength and presence.
+
+        Args:
+            password (str): Password to validate
+
+        Raises:
+            ValueError: If password is invalid
+        """
+        if not password or not isinstance(password, str):
+            raise ValueError("Password is required and must be a string")
+
+        if len(password) < 6:
+            raise ValueError("Password must be at least 6 characters long")
+
+    def _normalize_email(self, email: str) -> str:
+        """
+        Normalize email address.
+
+        Args:
+            email (str): Email to normalize
+
+        Returns:
+            str: Normalized email
+        """
+        return email.lower().strip() if email else None
+
+    def _normalize_name(self, name: Optional[str]) -> Optional[str]:
+        """
+        Normalize name field.
+
+        Args:
+            name (str, optional): Name to normalize
+
+        Returns:
+            str: Normalized name or None
+        """
+        return name.strip() if name else None
+
+    def _hash_password(self, password: str) -> str:
         """
         Hash a password using bcrypt.
 
@@ -79,7 +135,7 @@ class User(BaseModel):
 
         return bcrypt.generate_password_hash(password).decode('utf-8')
 
-    def verify_password(self, password):
+    def verify_password(self, password: str) -> bool:
         """
         Verify a password against the stored hash.
 
@@ -94,7 +150,7 @@ class User(BaseModel):
 
         return bcrypt.check_password_hash(self.password_hash, password)
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         """
         Convert user object to dictionary for JSON serialization.
 
@@ -113,7 +169,7 @@ class User(BaseModel):
         base_dict.update(user_dict)
         return base_dict
 
-    def update_password(self, new_password):
+    def update_password(self, new_password: str) -> None:
         """
         Update user password with new hash.
 
@@ -123,13 +179,11 @@ class User(BaseModel):
         Raises:
             ValueError: If new password is empty or None
         """
-        if not new_password:
-            raise ValueError("New password cannot be empty")
-
+        self._validate_password(new_password)
         self.password_hash = self._hash_password(new_password)
         self.update_timestamp()
 
-    def update_profile(self, **kwargs):
+    def update_profile(self, **kwargs: Any) -> None:
         """
         Update user profile information.
 
@@ -139,11 +193,12 @@ class User(BaseModel):
         allowed_fields = {'email', 'first_name', 'last_name', 'is_admin'}
 
         for field, value in kwargs.items():
-            if field in allowed_fields:
-                if field == 'email' and value:
-                    value = value.lower().strip()
-                elif field in {'first_name', 'last_name'} and value:
-                    value = value.strip()
+            if field in allowed_fields and value is not None:
+                if field == 'email':
+                    self._validate_email(value)
+                    value = self._normalize_email(value)
+                elif field in {'first_name', 'last_name'}:
+                    value = self._normalize_name(value)
                 elif field == 'is_admin':
                     value = bool(value)
 
@@ -152,8 +207,13 @@ class User(BaseModel):
         self.update_timestamp()
 
     @classmethod
-    def create_user(cls, email, password, first_name=None, last_name=None,
-                    is_admin=False):
+    def create_user(
+            cls,
+            email: str,
+            password: str,
+            first_name: Optional[str] = None,
+            last_name: Optional[str] = None,
+            is_admin: bool = False) -> 'User':
         """
         Create a new user with password hashing.
 
@@ -170,20 +230,16 @@ class User(BaseModel):
         Raises:
             ValueError: If email or password are invalid
         """
-        if not email or not password:
-            raise ValueError("Email and password are required")
-
-        user = cls(
+        return cls(
             email=email,
             password=password,
             first_name=first_name,
             last_name=last_name,
             is_admin=is_admin
         )
-        return user
 
     @classmethod
-    def get_by_email(cls, email):
+    def get_by_email(cls, email: str) -> Optional['User']:
         """
         Get user by email address.
 
@@ -199,7 +255,7 @@ class User(BaseModel):
         return cls.query.filter_by(email=email.lower().strip()).first()
 
     @classmethod
-    def get_by_id(cls, user_id):
+    def get_by_id(cls, user_id: str) -> Optional['User']:
         """
         Get user by ID.
 
@@ -215,7 +271,10 @@ class User(BaseModel):
         return cls.query.get(user_id)
 
     @classmethod
-    def get_all_users(cls, limit=None, offset=0):
+    def get_all_users(
+            cls,
+            limit: Optional[int] = None,
+            offset: int = 0) -> list['User']:
         """
         Get all users with optional pagination.
 
@@ -234,10 +293,10 @@ class User(BaseModel):
 
         return query.all()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """String representation of the user."""
         return f'<User {self.email}>'
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation for display."""
         return f"User(id={self.id}, email={self.email})"
