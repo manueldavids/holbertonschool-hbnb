@@ -103,15 +103,15 @@ class User(BaseModel):
         Returns:
             dict: User data without password information
         """
-        return {
-            'id': self.id,
+        base_dict = super().to_dict()
+        user_dict = {
             'email': self.email,
             'first_name': self.first_name,
             'last_name': self.last_name,
-            'is_admin': self.is_admin,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+            'is_admin': self.is_admin
         }
+        base_dict.update(user_dict)
+        return base_dict
 
     def update_password(self, new_password):
         """
@@ -127,7 +127,7 @@ class User(BaseModel):
             raise ValueError("New password cannot be empty")
         
         self.password_hash = self._hash_password(new_password)
-        self.updated_at = datetime.utcnow()
+        self.update_timestamp()
 
     def update_profile(self, **kwargs):
         """
@@ -149,7 +149,7 @@ class User(BaseModel):
                 
                 setattr(self, field, value)
         
-        self.updated_at = datetime.utcnow()
+        self.update_timestamp()
 
     @classmethod
     def create_user(cls, email, password, first_name=None, last_name=None,
