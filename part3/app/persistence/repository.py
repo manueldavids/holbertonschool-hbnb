@@ -470,3 +470,7 @@ class SQLAlchemyRepository(Repository):
         except Exception as e:
             print(f"Error counting objects: {e}")
             return 0
+
+place_repository = SQLAlchemyRepository(Place)
+review_repository = SQLAlchemyRepository(Review)
+amenity_repository = SQLAlchemyRepository(Amenity)
