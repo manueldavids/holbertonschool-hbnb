@@ -23,7 +23,7 @@ class Facade:
         """Initialize the facade with repositories."""
         self._user_repository = UserRepository()
         self._repositories = {
-            'user': SQLAlchemyRepository(User),
+            'user': UserRepository(),
             'place': SQLAlchemyRepository(Place)
         }
 
