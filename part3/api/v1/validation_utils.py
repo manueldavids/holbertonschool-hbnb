@@ -316,15 +316,15 @@ class ValidationUtils:
         """
         # Validate name
         if "name" in place_data:
-        is_valid, error = ValidationUtils.validate_string_field(
+            is_valid, error = ValidationUtils.validate_string_field(
                 place_data["name"], "name", max_length=255
             )
-        if not is_valid:
-            return False, error
+            if not is_valid:
+                return False, error
         
         # Validate description
         if "description" in place_data:
-        is_valid, error = ValidationUtils.validate_string_field(
+            is_valid, error = ValidationUtils.validate_string_field(
                 place_data["description"], "description", max_length=1000
             )
             if not is_valid:
@@ -343,24 +343,24 @@ class ValidationUtils:
             is_valid, error = ValidationUtils.validate_integer_field(
                 place_data["number_bathrooms"], "number_bathrooms", min_value=0
             )
-        if not is_valid:
-            return False, error
+            if not is_valid:
+                return False, error
         
         # Validate max_guest
         if "max_guest" in place_data:
             is_valid, error = ValidationUtils.validate_integer_field(
                 place_data["max_guest"], "max_guest", min_value=1
             )
-        if not is_valid:
-            return False, error
+            if not is_valid:
+                return False, error
         
         # Validate price_by_night
         if "price_by_night" in place_data:
-        is_valid, error = ValidationUtils.validate_float_field(
+            is_valid, error = ValidationUtils.validate_float_field(
                 place_data["price_by_night"], "price_by_night", min_value=0.0
             )
-        if not is_valid:
-            return False, error
+            if not is_valid:
+                return False, error
         
         # Validate latitude
         if "latitude" in place_data:
@@ -384,7 +384,7 @@ class ValidationUtils:
             if not is_valid:
                 return False, error
         
-        return True, None 
+        return True, None
 
     @staticmethod
     def validate_pagination_params(
