@@ -21,7 +21,7 @@ class Facade:
 
     def __init__(self):
         """Initialize the facade with repositories."""
-        self._user_repository = UserRepository()
+        self._user_repository = SQLAlchemyRepository(User)
         self._repositories: Dict[str, Repository] = {
             'user': self._user_repository,
             'place': SQLAlchemyRepository(Place)
