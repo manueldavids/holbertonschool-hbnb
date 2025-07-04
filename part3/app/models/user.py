@@ -8,6 +8,7 @@ from flask_bcrypt import Bcrypt
 from sqlalchemy.exc import IntegrityError
 from app import db
 from .base_model import BaseModel
+import uuid
 
 # Initialize bcrypt for password hashing
 bcrypt = Bcrypt()
@@ -33,6 +34,7 @@ class User(BaseModel):
     first_name = db.Column(db.String(50), nullable=True)
     last_name = db.Column(db.String(50), nullable=True)
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
 
     # Relationship: one user has many reviews
     reviews = db.relationship('Review', backref='user', lazy='dynamic')
