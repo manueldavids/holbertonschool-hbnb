@@ -13,7 +13,7 @@ from .base_model import BaseModel
 bcrypt = Bcrypt()
 
 
-class User(BaseModel, db.Model):
+class User(BaseModel):
     """
     User model with password hashing capabilities.
 
