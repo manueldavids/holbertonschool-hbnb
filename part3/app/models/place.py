@@ -44,7 +44,7 @@ class Place(BaseModel, db.Model):
                           onupdate=datetime.utcnow)
     
     # Relationship with User model
-    owner = db.relationship('User', backref=db.backref('places', lazy='dynamic'))
+    # owner = db.relationship('User', backref=db.backref('places', lazy='dynamic'))
     
     def __init__(self, **kwargs):
         """Initialize a new Place instance."""
