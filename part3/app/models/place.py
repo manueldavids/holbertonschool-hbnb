@@ -7,9 +7,10 @@ from datetime import datetime
 from app import db
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
+from .base_model import BaseModel
 
 
-class Place(db.Model):
+class Place(BaseModel, db.Model):
     """
     Place model representing properties available for booking.
     
@@ -30,15 +31,14 @@ class Place(db.Model):
     __tablename__ = 'places'
     
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    name = db.Column(db.String(255), nullable=False)
+    name = db.Column(db.String(128), nullable=False)
     description = db.Column(db.Text)
-    address = db.Column(db.String(500))
+    address = db.Column(db.String(256))
     price_per_night = db.Column(db.Float)
     max_guests = db.Column(db.Integer)
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
-    owner_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.id'), 
-                        nullable=False)
+    # owner_id se agregará con relaciones en Task 8
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, 
                           onupdate=datetime.utcnow)
@@ -68,7 +68,6 @@ class Place(db.Model):
             'max_guests': self.max_guests,
             'latitude': self.latitude,
             'longitude': self.longitude,
-            'owner_id': str(self.owner_id),
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
