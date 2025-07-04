@@ -24,7 +24,7 @@ class Amenity(BaseModel, db.Model):
     
     __tablename__ = 'amenities'
     
-    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = db.Column(db.String(128), nullable=False, unique=True)
     description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -35,7 +35,7 @@ class Amenity(BaseModel, db.Model):
         """Initialize a new Amenity instance."""
         super(Amenity, self).__init__(**kwargs)
         if not self.id:
-            self.id = uuid.uuid4()
+            self.id = str(uuid.uuid4())
     
     def to_dict(self):
         """
