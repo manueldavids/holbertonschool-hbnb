@@ -7,9 +7,10 @@ from datetime import datetime
 from app import db
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
+from .base_model import BaseModel
 
 
-class Amenity(db.Model):
+class Amenity(BaseModel, db.Model):
     """
     Amenity model representing available amenities for places.
     
@@ -24,7 +25,7 @@ class Amenity(db.Model):
     __tablename__ = 'amenities'
     
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    name = db.Column(db.String(255), nullable=False, unique=True)
+    name = db.Column(db.String(128), nullable=False, unique=True)
     description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, 
