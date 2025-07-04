@@ -39,7 +39,7 @@ class APIResponse:
             else:
                 response['data'] = data
                 
-        return jsonify(response), status_code
+        return response, status_code
     
     @staticmethod
     def error(message: str, status_code: int = 400, 
@@ -63,7 +63,7 @@ class APIResponse:
         if details:
             response['details'] = details
             
-        return jsonify(response), status_code
+        return response, status_code
     
     @staticmethod
     def not_found(resource: str = "Resource") -> Tuple[Dict[str, Any], int]:
