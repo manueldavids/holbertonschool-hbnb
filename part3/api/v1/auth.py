@@ -90,7 +90,6 @@ class Login(Resource):
     @api.response(401, 'Invalid credentials', error_model)
     @api.response(400, 'Bad request', error_model)
     @api.response(500, 'Internal server error', error_model)
-    @handle_exceptions
     def post(self):
         """
         Authenticate user and return JWT tokens.
@@ -103,7 +102,7 @@ class Login(Resource):
 
         # Validate request body
         if not credentials:
-            return APIResponse.bad_request("Request body is required")
+            return {'error': 'Request body is required'}, 400
 
         email = credentials.get('email')
         password = credentials.get('password')
@@ -111,14 +110,14 @@ class Login(Resource):
         # Validate credentials format
         is_valid, error_message = validate_credentials(email, password)
         if not is_valid:
-            return APIResponse.bad_request(error_message)
+            return {'error': error_message}, 400
 
         # Step 1: Retrieve the user based on the provided email
         user = User.get_by_email(email)
 
         # Step 2: Check if the user exists and the password is correct
         if not user or not user.verify_password(password):
-            return APIResponse.unauthorized("Invalid credentials")
+            return {'error': 'Invalid credentials'}, 401
 
         # Step 3: Create JWT tokens with user claims
         try:
@@ -138,7 +137,7 @@ class Login(Resource):
                 expires_delta=timedelta(days=30)
             )
         except Exception as e:
-            return APIResponse.internal_error("Token generation failed", str(e))
+            return {'error': 'Token generation failed', 'details': str(e)}, 500
 
         # Step 4: Return JWT tokens to the client
         return {
@@ -146,7 +145,7 @@ class Login(Resource):
             'refresh_token': refresh_token,
             'token_type': 'Bearer',
             'expires_in': 3600,
-            'message': "Login successful"
+            'message': 'Login successful'
         }, 200
 
 
@@ -171,9 +170,7 @@ class TokenRefresh(Resource):
             # Validate user still exists
             user = User.get_by_id(current_user_id)
             if not user:
-                return {
-                    'error': 'User not found'
-                }, 401
+                return {'error': 'User not found'}, 401
 
             # Create new access token
             try:
@@ -185,22 +182,17 @@ class TokenRefresh(Resource):
                     expires_delta=timedelta(hours=1)
                 )
             except Exception as e:
-                return {
-                    'error': 'Token generation failed',
-                    'details': str(e)
-                }, 500
+                return {'error': 'Token generation failed', 'details': str(e)}, 500
 
             return {
                 'access_token': access_token,
                 'token_type': 'Bearer',
-                'expires_in': 3600
+                'expires_in': 3600,
+                'message': 'Token refreshed successfully'
             }, 200
 
         except Exception as e:
-            return {
-                'error': 'Token refresh failed',
-                'details': str(e)
-            }, 500
+            return {'error': 'Token refresh failed', 'details': str(e)}, 500
 
 
 @api.route('/protected')
@@ -224,9 +216,7 @@ class ProtectedResource(Resource):
             # Validate user still exists
             user = User.get_by_id(current_user_id)
             if not user:
-                return {
-                    'error': 'User not found'
-                }, 401
+                return {'error': 'User not found'}, 401
 
             # Extract user information from token claims
             is_admin = current_claims.get('is_admin', False)
@@ -238,10 +228,7 @@ class ProtectedResource(Resource):
             }, 200
 
         except Exception as e:
-            return {
-                'error': 'Protected resource access failed',
-                'details': str(e)
-            }, 500
+            return {'error': 'Protected resource access failed', 'details': str(e)}, 500
 
 
 @api.route('/logout')
@@ -270,7 +257,4 @@ class Logout(Resource):
             }, 200
 
         except Exception as e:
-            return {
-                'error': 'Logout failed',
-                'details': str(e)
-            }, 500
+            return {'error': 'Logout failed', 'details': str(e)}, 500
