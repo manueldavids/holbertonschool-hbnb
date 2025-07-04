@@ -11,7 +11,9 @@ from app.persistence.repository import SQLAlchemyRepository
 from app.persistence.user_repository import UserRepository
 from app.persistence.repository import Repository
 import uuid
+from flask_bcrypt import Bcrypt
 
+bcrypt = Bcrypt()
 
 class Facade:
     """
@@ -43,6 +45,7 @@ class Facade:
             Exception: If user creation fails
         """
         try:
+            password_hash = bcrypt.generate_password_hash(user_data['password']).decode('utf-8')
             user = self._user_repository.create_user(user_data)
             return user.to_dict()
         except ValueError as e:
