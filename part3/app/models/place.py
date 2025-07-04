@@ -35,7 +35,7 @@ class Place(BaseModel, db.Model):
     
     __tablename__ = 'places'
     
-    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = db.Column(db.String(128), nullable=False)
     description = db.Column(db.Text)
     address = db.Column(db.String(256))
@@ -43,7 +43,7 @@ class Place(BaseModel, db.Model):
     max_guests = db.Column(db.Integer)
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
-    owner_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.id'), nullable=False)
+    owner_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, 
                           onupdate=datetime.utcnow)
@@ -64,7 +64,7 @@ class Place(BaseModel, db.Model):
         """Initialize a new Place instance."""
         super(Place, self).__init__(**kwargs)
         if not self.id:
-            self.id = uuid.uuid4()
+            self.id = str(uuid.uuid4())
     
     def to_dict(self):
         """
