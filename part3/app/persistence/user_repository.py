@@ -8,10 +8,10 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm.exc import NoResultFound
 from app import db
 from app.models.user import User
-from app.persistence.repository import Repository
+from app.persistence.repository import SQLAlchemyRepository
 
 
-class UserRepository(Repository):
+class UserRepository(SQLAlchemyRepository):
     """
     Repository for User model operations.
     Provides user-specific database queries and operations.
