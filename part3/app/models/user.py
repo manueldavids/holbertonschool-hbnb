@@ -34,6 +34,9 @@ class User(BaseModel):
     last_name = db.Column(db.String(50), nullable=True)
     is_admin = db.Column(db.Boolean, default=False, nullable=False)
 
+    # Relationship: one user has many reviews
+    reviews = db.relationship('Review', backref='user', lazy='dynamic')
+
     def __init__(
             self,
             email: str,
