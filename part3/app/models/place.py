@@ -38,13 +38,13 @@ class Place(BaseModel, db.Model):
     max_guests = db.Column(db.Integer)
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
-    # owner_id se agregará con relaciones en Task 8
+    owner_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, 
                           onupdate=datetime.utcnow)
     
     # Relationship with User model
-    # owner = db.relationship('User', backref=db.backref('places', lazy='dynamic'))
+    owner = db.relationship('User', backref=db.backref('places', lazy='dynamic'))
     
     def __init__(self, **kwargs):
         """Initialize a new Place instance."""
