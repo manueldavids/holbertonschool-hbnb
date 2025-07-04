@@ -8,6 +8,9 @@ from typing import List, Optional, Any, Dict, TypeVar, Generic, Type
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 from app import db
+from app.models.place import Place
+from app.models.review import Review
+from app.models.amenity import Amenity
 
 # Generic type for models
 T = TypeVar('T')
