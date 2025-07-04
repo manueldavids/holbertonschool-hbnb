@@ -9,6 +9,11 @@ from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from .base_model import BaseModel
 
+place_amenity = db.Table(
+    'place_amenity',
+    db.Column('place_id', db.String(36), db.ForeignKey('places.id'), primary_key=True),
+    db.Column('amenity_id', db.String(36), db.ForeignKey('amenities.id'), primary_key=True)
+)
 
 class Place(BaseModel, db.Model):
     """
@@ -47,6 +52,13 @@ class Place(BaseModel, db.Model):
     owner = db.relationship('User', backref=db.backref('places', lazy='dynamic'))
     # Relationship with Review model
     reviews = db.relationship('Review', backref='place', lazy='dynamic')
+    # Relationship with Amenity model
+    amenities = db.relationship(
+        'Amenity',
+        secondary=place_amenity,
+        backref=db.backref('places', lazy='dynamic'),
+        lazy='dynamic'
+    )
     
     def __init__(self, **kwargs):
         """Initialize a new Place instance."""
