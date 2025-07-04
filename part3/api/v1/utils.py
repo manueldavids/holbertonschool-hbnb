@@ -73,9 +73,9 @@ def require_admin(f):
     def decorated_function(*args, **kwargs):
         admin_user = get_current_admin_user()
         if not admin_user:
-            return jsonify({
+            return {
                 'error': 'Forbidden - admin access required'
-            }), 403
+            }, 403
         return f(*args, **kwargs)
     return decorated_function
 
@@ -143,8 +143,8 @@ def handle_database_error(func):
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            return jsonify({
+            return {
                 'error': 'Internal server error',
                 'details': str(e)
-            }), 500
+            }, 500
     return decorated_function 
