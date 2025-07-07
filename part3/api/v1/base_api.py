@@ -40,7 +40,8 @@ class BaseAPI(ABC):
             f'/{self.entity_name}s',
             f'create_{self.entity_name}',
             self.create_entity,
-            methods=['POST']
+            methods=['POST'],
+            strict_slashes=False
         )
         
         # Read (single)
