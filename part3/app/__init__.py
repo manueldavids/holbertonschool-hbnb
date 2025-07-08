@@ -118,7 +118,7 @@ def _initialize_extensions(app, config_name):
             from flask_swagger_ui import get_swaggerui_blueprint
             swagger_blueprint = get_swaggerui_blueprint(
                 app.config.get('OPENAPI_SWAGGER_UI_PATH', '/swagger-ui'),
-                app.config.get('OPENAPI_URL_PREFIX', '/'),
+                '/api/v1/swagger.json',  # <-- Correct spec URL
                 config={
                     'app_name': app.config.get('API_TITLE', 'HBNB API')
                 }
