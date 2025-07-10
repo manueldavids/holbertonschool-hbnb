@@ -140,27 +140,17 @@ class Facade:
             self._log_error(f"Error deleting user {user_id}: {e}")
             raise
 
-    def authenticate_user(
-            self, email: str, password: str) -> Optional[Dict[str, Any]]:
-        """
-        Authenticate user with email and password.
-
-        Args:
-            email (str): User email address
-            password (str): Plain text password
-
-        Returns:
-            dict: User data if authentication successful, None otherwise
-
-        Raises:
-            Exception: If database operation fails
-        """
-        try:
-            user = self._user_repository.authenticate_user(email, password)
-            return user.to_dict() if user else None
-        except Exception as e:
-            self._log_error(f"Error authenticating user {email}: {e}")
-            raise
+    def authenticate_user(self, email, password):
+        from app.models.user import User
+        user = User.get_by_email(email)
+        print(f"[DEBUG] Buscando usuario por email: {email}")
+        print(f"[DEBUG] Usuario encontrado: {user}")
+        if user:
+            pw_check = user.verify_password(password)
+            print(f"[DEBUG] ¿Password correcto?: {pw_check}")
+        if user and user.verify_password(password):
+            return user
+        return None
 
     def get_all_users(self, limit: Optional[int] = None,
                       offset: int = 0) -> List[Dict[str, Any]]:
@@ -588,3 +578,38 @@ class Facade:
             int: Total place count
         """
         return self._get_repository('place').count()
+
+    @staticmethod
+    def validate_place_update_data(data):
+        # Solo valida los campos presentes
+        if 'name' in data and not data['name']:
+            return False, "Name cannot be empty"
+        if 'price_per_night' in data:
+            try:
+                price = float(data['price_per_night'])
+                if price < 0:
+                    return False, "Price per night cannot be negative"
+            except (ValueError, TypeError):
+                return False, "Invalid price per night value"
+        if 'max_guests' in data:
+            try:
+                guests = int(data['max_guests'])
+                if guests <= 0:
+                    return False, "Maximum guests must be positive"
+            except (ValueError, TypeError):
+                return False, "Invalid maximum guests value"
+        if 'latitude' in data:
+            try:
+                lat = float(data['latitude'])
+                if not -90 <= lat <= 90:
+                    return False, "Latitude must be between -90 and 90"
+            except (ValueError, TypeError):
+                return False, "Invalid latitude value"
+        if 'longitude' in data:
+            try:
+                lon = float(data['longitude'])
+                if not -180 <= lon <= 180:
+                    return False, "Longitude must be between -180 and 180"
+            except (ValueError, TypeError):
+                return False, "Invalid longitude value"
+        return True, None
