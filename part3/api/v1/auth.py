@@ -16,6 +16,8 @@ from datetime import timedelta
 from app.models.user import User
 from .response_utils import APIResponse, handle_exceptions
 from .validation_utils import ValidationUtils
+from app.services.facade import Facade
+facade = Facade()
 
 api = Namespace('auth', description='Authentication operations')
 
@@ -112,11 +114,11 @@ class Login(Resource):
         if not is_valid:
             return {'error': error_message}, 400
 
-        # Step 1: Retrieve the user based on the provided email
-        user = User.get_by_email(email)
+        # Step 1: Authenticate user using the Facade
+        user = facade.authenticate_user(email, password)
 
         # Step 2: Check if the user exists and the password is correct
-        if not user or not user.verify_password(password):
+        if not user:
             return {'error': 'Invalid credentials'}, 401
 
         # Step 3: Create JWT tokens with user claims
