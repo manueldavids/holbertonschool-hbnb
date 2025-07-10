@@ -344,6 +344,50 @@ class AdminUserResource(Resource):
                 'details': str(e)
             }, 500
 
+    @jwt_required()
+    @api.response(200, 'User deleted successfully')
+    @api.response(400, 'Bad request', error_model)
+    @api.response(401, 'Unauthorized', error_model)
+    @api.response(403, 'Forbidden - admin access required', error_model)
+    @api.response(404, 'User not found', error_model)
+    @api.response(500, 'Internal server error', error_model)
+    def delete(self, user_id):
+        """
+        Delete a user by ID (admin only).
+        Only users with admin privileges can access this endpoint.
+        """
+        try:
+            # Verify admin privileges
+            admin_user = get_current_admin_user()
+            if not admin_user:
+                return {
+                    'error': 'Forbidden - admin access required'
+                }, 403
+            # Validate user_id
+            if not user_id:
+                return {
+                    'error': 'User ID is required'
+                }, 400
+            # Get user from database
+            user = User.get_by_id(user_id)
+            if not user:
+                return {
+                    'error': 'User not found'
+                }, 404
+            # Delete user
+            db.session.delete(user)
+            db.session.commit()
+            return {
+                'message': 'User deleted successfully',
+                'user_id': user_id
+            }, 200
+        except Exception as e:
+            db.session.rollback()
+            return {
+                'error': 'Failed to delete user',
+                'details': str(e)
+            }, 500
+
 
 @api.route('/amenities')
 class AdminAmenityManagement(Resource):
