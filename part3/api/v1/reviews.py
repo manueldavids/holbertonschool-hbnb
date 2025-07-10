@@ -6,6 +6,8 @@ Handles CRUD operations for reviews with authenticated user access.
 from flask_restx import Namespace, Resource, fields
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from app.models.user import User
+from app.services.facade import Facade
+facade = Facade()
 
 # Create API namespace
 api = Namespace('reviews', description='Reviews management operations')
@@ -263,20 +265,16 @@ class ReviewsList(Resource):
                     'error': error_message
                 }, 400
 
-            place_id = review_data.get('place_id')
+            place_id = api.payload.get('place_id')
 
-            # Check if place exists
-            place = get_place_by_id(place_id)
+            # Verifica que el lugar exista usando el Facade
+            place = facade.get_place(place_id)
             if not place:
-                return {
-                    'error': 'Place not found'
-                }, 404
+                return {'error': 'Place not found'}, 404
 
             # Check if user owns the place (cannot review own place)
-            if place.owner_id == str(user.id):
-                return {
-                    'error': 'Forbidden - you cannot review your own place'
-                }, 403
+            if place['owner_id'] == str(user.id):
+                return {'error': 'You cannot review your own place'}, 403
 
             # Check if user already reviewed this place
             existing_review = get_user_review_for_place(str(user.id), place_id)
@@ -499,7 +497,7 @@ class PlaceReviews(Resource):
                 }, 400
 
             # Check if place exists
-            place = get_place_by_id(place_id)
+            place = facade.get_place(place_id)
             if not place:
                 return {
                     'error': 'Place not found'
