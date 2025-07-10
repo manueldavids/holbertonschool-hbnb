@@ -7,6 +7,11 @@ from flask_restx import Namespace, Resource, fields
 from flask_jwt_extended import jwt_required
 from app.models.user import User
 from api.v1.utils import get_current_user, is_admin_user, check_ownership_or_admin
+from app.models.place import Place
+from app import db
+from datetime import datetime
+from app.services.facade import Facade
+facade = Facade()
 
 # Create API namespace
 api = Namespace('places', description='Places management operations')
@@ -78,146 +83,7 @@ error_model = api.model('Error', {
 })
 
 
-class Place:
-    """
-    Place model for demonstration purposes.
-    In a real implementation, this would be a SQLAlchemy model.
-    """
 
-    def __init__(self, id, name, description, address, price_per_night,
-                 max_guests, latitude, longitude, owner_id):
-        self.id = id
-        self.name = name
-        self.description = description
-        self.address = address
-        self.price_per_night = price_per_night
-        self.max_guests = max_guests
-        self.latitude = latitude
-        self.longitude = longitude
-        self.owner_id = owner_id
-        self.created_at = None
-        self.updated_at = None
-
-    def to_dict(self):
-        """Convert place object to dictionary."""
-        return {
-            'id': self.id,
-            'name': self.name,
-            'description': self.description,
-            'address': self.address,
-            'price_per_night': self.price_per_night,
-            'max_guests': self.max_guests,
-            'latitude': self.latitude,
-            'longitude': self.longitude,
-            'owner_id': self.owner_id,
-            'created_at': self.created_at,
-            'updated_at': self.updated_at
-        }
-
-
-# Mock database for demonstration
-places_db = {}
-
-
-def get_place_by_id(place_id):
-    """Get place by ID from mock database."""
-    return places_db.get(place_id)
-
-
-def create_place(place_data, owner_id):
-    """Create a new place in mock database."""
-    import uuid
-    place_id = str(uuid.uuid4())
-    place = Place(
-        id=place_id,
-        name=place_data.get('name'),
-        description=place_data.get('description'),
-        address=place_data.get('address'),
-        price_per_night=place_data.get('price_per_night'),
-        max_guests=place_data.get('max_guests'),
-        latitude=place_data.get('latitude'),
-        longitude=place_data.get('longitude'),
-        owner_id=owner_id
-    )
-    places_db[place_id] = place
-    return place
-
-
-def update_place(place_id, place_data):
-    """Update place in mock database."""
-    place = places_db.get(place_id)
-    if not place:
-        return None
-
-    for field, value in place_data.items():
-        if hasattr(place, field) and value is not None:
-            setattr(place, field, value)
-
-    return place
-
-
-def delete_place(place_id):
-    """Delete place from mock database."""
-    if place_id in places_db:
-        del places_db[place_id]
-        return True
-    return False
-
-
-def get_all_places():
-    """Get all places from mock database."""
-    return list(places_db.values())
-
-
-def validate_place_data(place_data):
-    """
-    Validate place data.
-
-    Args:
-        place_data (dict): Place data to validate
-
-    Returns:
-        tuple: (is_valid, error_message)
-    """
-    if not place_data or 'name' not in place_data:
-        return False, "Place name is required"
-
-    # Validate price_per_night
-    if 'price_per_night' in place_data:
-        try:
-            price = float(place_data['price_per_night'])
-            if price < 0:
-                return False, "Price per night cannot be negative"
-        except (ValueError, TypeError):
-            return False, "Invalid price per night value"
-
-    # Validate max_guests
-    if 'max_guests' in place_data:
-        try:
-            guests = int(place_data['max_guests'])
-            if guests <= 0:
-                return False, "Maximum guests must be positive"
-        except (ValueError, TypeError):
-            return False, "Invalid maximum guests value"
-
-    # Validate coordinates
-    if 'latitude' in place_data:
-        try:
-            lat = float(place_data['latitude'])
-            if not -90 <= lat <= 90:
-                return False, "Latitude must be between -90 and 90"
-        except (ValueError, TypeError):
-            return False, "Invalid latitude value"
-
-    if 'longitude' in place_data:
-        try:
-            lon = float(place_data['longitude'])
-            if not -180 <= lon <= 180:
-                return False, "Longitude must be between -180 and 180"
-        except (ValueError, TypeError):
-            return False, "Invalid longitude value"
-
-    return True, ""
 
 
 # Using centralized function from utils.py
@@ -237,9 +103,9 @@ class PlacesList(Resource):
         authentication.
         """
         try:
-            places = get_all_places()
+            places = facade.get_all_places()
             return {
-                'places': [place.to_dict() for place in places],
+                'places': [place for place in places],
                 'total': len(places)
             }, 200
         except Exception as e:
@@ -271,21 +137,21 @@ class PlacesList(Resource):
 
             # Get and validate place data
             place_data = api.payload
-            is_valid, error_message = validate_place_data(place_data)
+            is_valid, error_message = Facade.validate_place_data(place_data)
 
             if not is_valid:
                 return {
                     'error': error_message
                 }, 400
 
-            # Create new place
-            new_place = create_place(place_data, str(user.id))
+            # Create new place usando facade
+            new_place = facade.create_place(place_data, str(user.id))
             if not new_place:
                 return {
                     'error': 'Failed to create place'
                 }, 500
 
-            return new_place.to_dict(), 201
+            return new_place, 201
 
         except Exception as e:
             return {
@@ -317,7 +183,7 @@ class PlaceResource(Resource):
                 }, 400
 
             # Get place from database
-            place = get_place_by_id(place_id)
+            place = facade.get_place(place_id)
             if not place:
                 return {
                     'error': 'Place not found'
@@ -341,17 +207,12 @@ class PlaceResource(Resource):
     @api.response(500, 'Internal server error', error_model)
     def put(self, place_id):
         """
-        Update place by ID (authenticated endpoint with ownership check).
-
-        This endpoint requires authentication and ownership of the place.
-        Users can only update places they own.
+        Update a place (only owner can update).
         """
         try:
-            # Validate place_id
-            if not place_id:
-                return {
-                    'error': 'Place ID is required'
-                }, 400
+            place = facade.get_place(place_id)
+            if not place:
+                return {'error': 'Place not found'}, 404
 
             # Get current user
             user = get_current_user()
@@ -360,36 +221,28 @@ class PlaceResource(Resource):
                     'error': 'User not found'
                 }, 401
 
-            # Get place from database
-            place = get_place_by_id(place_id)
-            if not place:
-                return {
-                    'error': 'Place not found'
-                }, 404
-
             # Check ownership (admin bypass)
-            if not check_ownership_or_admin(place.owner_id, user.id):
+            if not check_ownership_or_admin(place['owner_id'], user.id):
                 return {
-                    'error': 'Forbidden - you can only update your own places'
-                }, 403
+                    'error': 'Unauthorized - you do not own this place'
+                }, 401
 
             # Get and validate update data
             update_data = api.payload
             if update_data:
-                is_valid, error_message = validate_place_data(update_data)
+                is_valid, error_message = Facade.validate_place_update_data(update_data)
                 if not is_valid:
                     return {
                         'error': error_message
                     }, 400
 
             # Update place
-            updated_place = update_place(place_id, update_data)
+            updated_place = facade.update_place(place_id, update_data)
             if not updated_place:
                 return {
                     'error': 'Failed to update place'
                 }, 500
-
-            return updated_place.to_dict(), 200
+            return updated_place, 200
 
         except Exception as e:
             return {
@@ -426,20 +279,20 @@ class PlaceResource(Resource):
                 }, 401
 
             # Get place from database
-            place = get_place_by_id(place_id)
+            place = facade.get_place(place_id)
             if not place:
                 return {
                     'error': 'Place not found'
                 }, 404
 
             # Check ownership (admin bypass)
-            if not check_ownership_or_admin(place.owner_id, user.id):
+            if not check_ownership_or_admin(place['owner_id'], user.id):
                 return {
-                    'error': 'Forbidden - you can only delete your own places'
-                }, 403
+                    'error': 'Unauthorized - you do not own this place'
+                }, 401
 
             # Delete place
-            success = delete_place(place_id)
+            success = facade.delete_place(place_id)
             if not success:
                 return {
                     'error': 'Failed to delete place'
