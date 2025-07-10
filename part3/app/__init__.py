@@ -85,12 +85,16 @@ def create_app(config_name=None):
     # Import models so Alembic can detect them
     from app.models import user
 
-    # Method 2: Registro de blueprints condicional
-    _register_blueprints(app, config_name)
+
+    # Remove all Blueprint registration and usage. Only use Flask-RESTX Api for endpoint registration. Clean up imports and initialization accordingly. Remove _register_blueprints and related logic.
 
     # Method 3: Configuración de logging y manejo de errores
     _setup_error_handlers(app, config_name)
 
+    # Importa y registra el Api aquí, para evitar el ciclo
+    from api import api
+    api.init_app(app)
+    # app.register_blueprint(api.blueprint, url_prefix='/api/v1')
     return app
 
 
@@ -123,44 +127,18 @@ def _initialize_extensions(app, config_name):
                     'app_name': app.config.get('API_TITLE', 'HBNB API')
                 }
             )
-            app.register_blueprint(
-                swagger_blueprint,
-                url_prefix=app.config.get(
-                    'OPENAPI_SWAGGER_UI_PATH', '/swagger-ui'
-                )
-            )
+            # app.register_blueprint(
+            #     swagger_blueprint,
+            #     url_prefix=app.config.get(
+            #         'OPENAPI_SWAGGER_UI_PATH', '/swagger-ui'
+            #     )
+            # )
     except Exception as e:
         logging.error(f"Failed to initialize extensions: {str(e)}")
         raise
 
 
-def _register_blueprints(app, config_name):
-    """
-    Register application blueprints.
-
-    Args:
-        app (Flask): Flask application instance
-        config_name (str): Configuration name
-    """
-    try:
-        # Import blueprints here to avoid circular imports
-        from api import api_bp
-
-        # Register API blueprint
-        app.register_blueprint(api_bp, url_prefix='/api/v1')
-
-        # Register additional blueprints based on configuration
-        if config_name == 'development':
-            # Development-specific blueprints (e.g., debug routes)
-            pass
-        elif config_name == 'testing':
-            # Testing-specific blueprints
-            pass
-    except ImportError as e:
-        logging.warning(f"Could not import blueprint: {str(e)}")
-    except Exception as e:
-        logging.error(f"Failed to register blueprints: {str(e)}")
-        raise
+# Remove all Blueprint registration and usage. Only use Flask-RESTX Api for endpoint registration. Clean up imports and initialization accordingly. Remove _register_blueprints and related logic.
 
 
 def _setup_error_handlers(app, config_name):
