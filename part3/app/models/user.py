@@ -4,13 +4,13 @@ Handles user data and password hashing with bcrypt.
 """
 
 from typing import Optional, Dict, Any
-from flask_bcrypt import Bcrypt
 from sqlalchemy.exc import IntegrityError
 from app import db
 from .base_model import BaseModel
 import uuid
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_bcrypt import Bcrypt
 
-# Initialize bcrypt for password hashing
 bcrypt = Bcrypt()
 
 
@@ -124,7 +124,7 @@ class User(BaseModel):
 
     def _hash_password(self, password: str) -> str:
         """
-        Hash a password using bcrypt.
+        Hash a password using Flask-Bcrypt.
 
         Args:
             password (str): Plain text password
@@ -142,7 +142,7 @@ class User(BaseModel):
 
     def verify_password(self, password: str) -> bool:
         """
-        Verify a password against the stored hash.
+        Verify a password against the stored hash using Flask-Bcrypt.
 
         Args:
             password (str): Plain text password to verify
