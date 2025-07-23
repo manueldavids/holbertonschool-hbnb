@@ -10,6 +10,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
+from flask_bcrypt import Bcrypt
 
 # Import configuration
 from app.config import config
@@ -18,6 +19,7 @@ from app.config import config
 db = SQLAlchemy()
 migrate = Migrate()
 jwt = JWTManager()
+bcrypt = Bcrypt()
 
 
 def create_app(config_name=None):
@@ -36,7 +38,7 @@ def create_app(config_name=None):
         ValueError: If invalid configuration name is provided
         RuntimeError: If required environment variables are missing
     """
-    # 1. INPUT VALUES WE ARE RECEIVING
+    # INPUT VALUES WE ARE RECEIVING
     # Determine configuration to use
     if config_name is None:
         config_name = os.environ.get('FLASK_ENV', 'default')
@@ -51,11 +53,14 @@ def create_app(config_name=None):
     # Get configuration class
     config_class = config[config_name]
 
-    # 2. VALUES WE ARE GOING TO RETURN
+    # VALUES WE ARE GOING TO RETURN
     # Create Flask application
     app = Flask(__name__)
 
-    # 3. WE HANDLE EXCEPTIONS
+    # Initialize Flask-Bcrypt
+    bcrypt.init_app(app)
+
+    # WE HANDLE EXCEPTIONS
     try:
         # Apply configuration
         app.config.from_object(config_class)
@@ -77,7 +82,7 @@ def create_app(config_name=None):
         logging.error(f"Failed to configure application: {str(e)}")
         raise
 
-    # 4. 3 DIFFERENT WAYS TO HANDLE THE PROCESS WITH PREVIOUSLY VERIFIED VALUES
+    # DIFFERENT WAYS TO HANDLE THE PROCESS WITH PREVIOUSLY VERIFIED VALUES
 
     # Method 1: Conditional initialization based on configuration
     _initialize_extensions(app, config_name)
@@ -88,13 +93,12 @@ def create_app(config_name=None):
 
     # Remove all Blueprint registration and usage. Only use Flask-RESTX Api for endpoint registration. Clean up imports and initialization accordingly. Remove _register_blueprints and related logic.
 
-    # Method 3: Configuración de logging y manejo de errores
+    # Method 3: Logging configuration and error handling
     _setup_error_handlers(app, config_name)
 
-    # Importa y registra el Api aquí, para evitar el ciclo
-    from api import api
-    api.init_app(app)
-    # app.register_blueprint(api.blueprint, url_prefix='/api/v1')
+    # Import and register the Api here to avoid circular import
+    from api import api_bp
+    app.register_blueprint(api_bp)
     return app
 
 
