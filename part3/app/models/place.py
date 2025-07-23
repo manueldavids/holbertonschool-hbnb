@@ -37,12 +37,12 @@ class Place(BaseModel, db.Model):
     
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = db.Column(db.String(128), nullable=False)
-    description = db.Column(db.Text)
-    address = db.Column(db.String(256))
-    price_per_night = db.Column(db.Float)
-    max_guests = db.Column(db.Integer)
-    latitude = db.Column(db.Float)
-    longitude = db.Column(db.Float)
+    description = db.Column(db.Text, nullable=False)
+    address = db.Column(db.String(256), nullable=False)
+    price_per_night = db.Column(db.Float, nullable=False)
+    max_guests = db.Column(db.Integer, nullable=False)
+    latitude = db.Column(db.Float, nullable=False)
+    longitude = db.Column(db.Float, nullable=False)
     owner_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, 
