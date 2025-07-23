@@ -11,9 +11,9 @@ from app.persistence.repository import SQLAlchemyRepository
 from app.persistence.user_repository import UserRepository
 from app.persistence.repository import Repository
 import uuid
-from flask_bcrypt import Bcrypt
+# Eliminar: from flask_bcrypt import Bcrypt
 
-bcrypt = Bcrypt()
+# Eliminar: bcrypt = Bcrypt()
 
 class Facade:
     """
@@ -23,10 +23,12 @@ class Facade:
 
     def __init__(self):
         """Initialize the facade with repositories."""
+        from app.models.review import Review
         self._user_repository = UserRepository()
         self._repositories = {
             'user': UserRepository(),
-            'place': SQLAlchemyRepository(Place)
+            'place': SQLAlchemyRepository(Place),
+            'review': SQLAlchemyRepository(Review)
         }
 
     # User Operations
@@ -45,7 +47,7 @@ class Facade:
             Exception: If user creation fails
         """
         try:
-            password_hash = bcrypt.generate_password_hash(user_data['password']).decode('utf-8')
+            
             user = self._user_repository.create_user(user_data)
             return user.to_dict()
         except ValueError as e:
@@ -578,6 +580,126 @@ class Facade:
             int: Total place count
         """
         return self._get_repository('place').count()
+
+    # Review operations
+    def create_review(self, review_data: Dict[str, Any], user_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Create a new review.
+
+        Args:
+            review_data (dict): Review data
+            user_id (str): ID of the user creating the review
+
+        Returns:
+            dict: Created review data or None if failed
+        """
+        try:
+            from app.models.review import Review
+            
+            # Generate UUID for review
+            review_data['id'] = str(uuid.uuid4())
+            review_data['user_id'] = user_id
+
+            # Create review instance
+            review = Review(**review_data)
+
+            # Save to database using repository
+            self._get_repository('review').add(review)
+
+            return review.to_dict()
+
+        except Exception as e:
+            self._log_error(f"Error creating review: {str(e)}")
+            return None
+
+    def get_review(self, review_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Get review by ID.
+
+        Args:
+            review_id (str): Review ID to retrieve
+
+        Returns:
+            dict: Review data if found, None otherwise
+        """
+        try:
+            review = self._get_repository('review').get(review_id)
+            return review.to_dict() if review else None
+        except Exception as e:
+            self._log_error(f"Error getting review {review_id}: {e}")
+            raise
+
+    def get_reviews_by_place(self, place_id: str) -> List[Dict[str, Any]]:
+        """
+        Get all reviews for a specific place.
+
+        Args:
+            place_id (str): Place ID
+
+        Returns:
+            list: List of review data dictionaries for the place
+        """
+        try:
+            reviews = self._get_repository('review').get_by_attribute('place_id', place_id)
+            return [review.to_dict() for review in reviews]
+        except Exception as e:
+            self._log_error(f"Error getting reviews by place {place_id}: {e}")
+            raise
+
+    def get_user_review_for_place(self, user_id: str, place_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Get user's review for a specific place.
+
+        Args:
+            user_id (str): User ID
+            place_id (str): Place ID
+
+        Returns:
+            dict: Review data if found, None otherwise
+        """
+        try:
+            reviews = self._get_repository('review').get_by_attribute('place_id', place_id)
+            for review in reviews:
+                if review.user_id == user_id:
+                    return review.to_dict()
+            return None
+        except Exception as e:
+            self._log_error(f"Error getting user review for place: {e}")
+            raise
+
+    def update_review(self, review_id: str, review_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """
+        Update review information.
+
+        Args:
+            review_id (str): Review ID to update
+            review_data (dict): Data to update
+
+        Returns:
+            dict: Updated review data if found, None otherwise
+        """
+        try:
+            review = self._get_repository('review').update(review_id, review_data)
+            return review.to_dict() if review else None
+        except Exception as e:
+            self._log_error(f"Error updating review {review_id}: {e}")
+            raise
+
+    def delete_review(self, review_id: str) -> bool:
+        """
+        Delete review by ID.
+
+        Args:
+            review_id (str): Review ID to delete
+
+        Returns:
+            bool: True if deletion was successful
+        """
+        try:
+            return self._get_repository('review').delete(review_id)
+        except Exception as e:
+            self._log_error(f"Error deleting review {review_id}: {e}")
+            raise
 
     @staticmethod
     def validate_place_update_data(data):
