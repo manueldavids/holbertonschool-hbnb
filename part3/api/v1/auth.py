@@ -2,7 +2,6 @@
 JWT Authentication endpoints for the HBnB API.
 Handles user login, token generation, and protected endpoints.
 """
-
 import re
 from flask_restx import Namespace, Resource, fields
 from flask_jwt_extended import (
@@ -21,43 +20,10 @@ facade = Facade()
 
 api = Namespace('auth', description='Authentication operations')
 
-# Model for input validation
+# Define models and parsers as needed
 login_model = api.model('Login', {
-    'email': fields.String(
-        required=True,
-        description='User email address',
-        example='user@example.com'
-    ),
-    'password': fields.String(
-        required=True,
-        description='User password',
-        example='securepassword123'
-    )
-})
-
-# Model for response validation
-token_response_model = api.model('TokenResponse', {
-    'access_token': fields.String(description='JWT access token'),
-    'refresh_token': fields.String(description='JWT refresh token'),
-    'token_type': fields.String(description='Token type (Bearer)'),
-    'expires_in': fields.Integer(
-        description='Token expiration time in seconds'
-    )
-})
-
-# Model for protected endpoint response
-protected_response_model = api.model('ProtectedResponse', {
-    'message': fields.String(description='Response message'),
-    'user_id': fields.String(description='User ID from token'),
-    'is_admin': fields.Boolean(description='User admin status')
-})
-
-# Model for error responses
-error_model = api.model('Error', {
-    'error': fields.String(description='Error message'),
-    'details': fields.String(
-        description='Additional error details', required=False
-    )
+    'email': fields.String(required=True, description='User email address'),
+    'password': fields.String(required=True, description='User password')
 })
 
 
@@ -88,60 +54,33 @@ def validate_credentials(email, password):
 @api.route('/login')
 class Login(Resource):
     @api.expect(login_model)
-    @api.response(200, 'Login successful', token_response_model)
-    @api.response(401, 'Invalid credentials', error_model)
-    @api.response(400, 'Bad request', error_model)
-    @api.response(500, 'Internal server error', error_model)
     def post(self):
         """
         Authenticate user and return JWT tokens.
-
-        This endpoint validates user credentials and generates
-        JWT access and refresh tokens upon successful authentication.
         """
-        # Get credentials from request payload
-        credentials = api.payload
-
-        # Validate request body
-        if not credentials:
-            return {'error': 'Request body is required'}, 400
-
-        email = credentials.get('email')
-        password = credentials.get('password')
-
-        # Validate credentials format
+        args = api.payload
+        email = args['email']
+        password = args['password']
+        # Validación y autenticación igual que antes
         is_valid, error_message = validate_credentials(email, password)
         if not is_valid:
             return {'error': error_message}, 400
-
-        # Step 1: Authenticate user using the Facade
         user = facade.authenticate_user(email, password)
-
-        # Step 2: Check if the user exists and the password is correct
         if not user:
             return {'error': 'Invalid credentials'}, 401
-
-        # Step 3: Create JWT tokens with user claims
         try:
             access_token = create_access_token(
                 identity=str(user.id),
-                additional_claims={
-                    'is_admin': user.is_admin
-                },
+                additional_claims={'is_admin': user.is_admin},
                 expires_delta=timedelta(hours=1)
             )
-
             refresh_token = create_refresh_token(
                 identity=str(user.id),
-                additional_claims={
-                    'is_admin': user.is_admin
-                },
+                additional_claims={'is_admin': user.is_admin},
                 expires_delta=timedelta(days=30)
             )
         except Exception as e:
             return {'error': 'Token generation failed', 'details': str(e)}, 500
-
-        # Step 4: Return JWT tokens to the client
         return {
             'access_token': access_token,
             'refresh_token': refresh_token,
@@ -154,9 +93,6 @@ class Login(Resource):
 @api.route('/refresh')
 class TokenRefresh(Resource):
     @jwt_required(refresh=True)
-    @api.response(200, 'Token refreshed', token_response_model)
-    @api.response(401, 'Invalid refresh token', error_model)
-    @api.response(500, 'Internal server error', error_model)
     def post(self):
         """
         Refresh JWT access token using refresh token.
@@ -200,9 +136,6 @@ class TokenRefresh(Resource):
 @api.route('/protected')
 class ProtectedResource(Resource):
     @jwt_required()
-    @api.response(200, 'Access granted', protected_response_model)
-    @api.response(401, 'Invalid or missing token', error_model)
-    @api.response(500, 'Internal server error', error_model)
     def get(self):
         """
         A protected endpoint that requires a valid JWT token.
@@ -236,9 +169,6 @@ class ProtectedResource(Resource):
 @api.route('/logout')
 class Logout(Resource):
     @jwt_required()
-    @api.response(200, 'Logout successful')
-    @api.response(401, 'Invalid token', error_model)
-    @api.response(500, 'Internal server error', error_model)
     def post(self):
         """
         Logout endpoint (token invalidation).
