@@ -3,7 +3,7 @@ Administrator access endpoints for the HBnB API.
 Handles admin-only operations with role-based access control.
 """
 import re
-from flask_restx import Namespace, Resource, fields
+from flask_restx import Namespace, Resource, fields, reqparse
 from flask_jwt_extended import jwt_required
 from sqlalchemy.exc import IntegrityError
 from app.models.user import User, db
@@ -18,31 +18,15 @@ from api.v1.utils import (
 api = Namespace('admin', description='Administrator operations')
 # Email validation regex (keeping for backward compatibility)
 EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
-# Input validation models
-admin_user_creation_model = api.model('AdminUserCreation', {
-    'email': fields.String(
-        required=True,
-        description='User email address',
-        example='newuser@example.com'
-    ),
-    'password': fields.String(
-        required=True,
-        description='User password (minimum 6 characters)',
-        example='securepassword123'
-    ),
-    'first_name': fields.String(
-        description='User first name',
-        example='John'
-    ),
-    'last_name': fields.String(
-        description='User last name',
-        example='Doe'
-    ),
-    'is_admin': fields.Boolean(
-        description='Admin privileges flag',
-        default=False
-    )
+# Define parser for admin user creation and update
+admin_user_model = api.model('AdminUser', {
+    'email': fields.String(required=True, description='User email address'),
+    'password': fields.String(required=True, description='User password (min 6 chars)'),
+    'first_name': fields.String(required=False),
+    'last_name': fields.String(required=False),
+    'is_admin': fields.Boolean(required=False, default=False)
 })
+
 admin_user_update_model = api.model('AdminUserUpdate', {
     'email': fields.String(description='User email address'),
     'password': fields.String(description='User password'),
@@ -50,6 +34,7 @@ admin_user_update_model = api.model('AdminUserUpdate', {
     'last_name': fields.String(description='User last name'),
     'is_admin': fields.Boolean(description='Admin privileges flag')
 })
+
 amenity_creation_model = api.model('AmenityCreation', {
     'name': fields.String(
         required=True,
@@ -61,6 +46,7 @@ amenity_creation_model = api.model('AmenityCreation', {
         example='High-speed wireless internet'
     )
 })
+
 amenity_update_model = api.model('AmenityUpdate', {
     'name': fields.String(description='Amenity name'),
     'description': fields.String(description='Amenity description')
@@ -75,6 +61,7 @@ user_response_model = api.model('UserResponse', {
     'created_at': fields.String(description='User creation timestamp'),
     'updated_at': fields.String(description='Last update timestamp')
 })
+
 amenity_response_model = api.model('AmenityResponse', {
     'id': fields.String(description='Amenity ID'),
     'name': fields.String(description='Amenity name'),
@@ -82,6 +69,7 @@ amenity_response_model = api.model('AmenityResponse', {
     'created_at': fields.String(description='Creation timestamp'),
     'updated_at': fields.String(description='Last update timestamp')
 })
+
 error_model = api.model('Error', {
     'error': fields.String(description='Error message'),
     'details': fields.String(
@@ -138,7 +126,7 @@ def get_all_amenities():
 class AdminUserManagement(Resource):
     """Resource for admin user management operations."""
     @jwt_required()
-    @api.expect(admin_user_creation_model)
+    @api.expect(admin_user_model)
     @api.response(201, 'User created successfully', user_response_model)
     @api.response(400, 'Bad request', error_model)
     @api.response(401, 'Unauthorized', error_model)
@@ -158,15 +146,10 @@ class AdminUserManagement(Resource):
                 return {
                     'error': 'Forbidden - admin access required'
                 }, 403
+            args = api.payload
             # Get user data from request payload
-            user_data = api.payload
-            # Validate required fields
-            if not user_data:
-                return {
-                    'error': 'Request body is required'
-                }, 400
-            email = user_data.get('email')
-            password = user_data.get('password')
+            email = args['email']
+            password = args['password']
             if not email or not password:
                 return {
                     'error': 'Email and password are required'
@@ -183,9 +166,9 @@ class AdminUserManagement(Resource):
                     'error': password_error
                 }, 400
             # Extract optional fields
-            first_name = user_data.get('first_name')
-            last_name = user_data.get('last_name')
-            is_admin = user_data.get('is_admin', False)
+            first_name = args.get('first_name')
+            last_name = args.get('last_name')
+            is_admin = args.get('is_admin', False)
             # Check if user already exists
             existing_user = User.get_by_email(email)
             if existing_user:
@@ -292,15 +275,11 @@ class AdminUserResource(Resource):
                 return {
                     'error': 'User not found'
                 }, 404
+            args = api.payload
             # Get update data from request payload
-            update_data = api.payload
-            if not update_data:
-                return {
-                    'error': 'Update data is required'
-                }, 400
+            new_email = args.get('email')
             # Handle email update with validation
-            if 'email' in update_data and update_data['email']:
-                new_email = update_data['email']
+            if new_email:
                 # Validate email format
                 if not validate_email(new_email):
                     return {
@@ -313,17 +292,17 @@ class AdminUserResource(Resource):
                         'error': 'Email already exists'
                     }, 409
             # Handle password update with validation
-            if 'password' in update_data and update_data['password']:
-                password = update_data['password']
+            password = args.get('password')
+            if password:
                 is_valid_password, password_error = validate_password(password)
                 if not is_valid_password:
                     return {
                         'error': password_error
                     }, 400
                 # Hash the new password
-                user.set_password(update_data['password'])
+                user.set_password(password)
             # Update other user fields
-            for field, value in update_data.items():
+            for field, value in args.items():
                 if (hasattr(user, field) and value is not None and
                         field != 'password'):
                     setattr(user, field, value)
@@ -412,15 +391,15 @@ class AdminAmenityManagement(Resource):
                 return {
                     'error': 'Forbidden - admin access required'
                 }, 403
+            args = api.payload
             # Get amenity data from request payload
-            amenity_data = api.payload
-            # Validate required fields
-            if not amenity_data or 'name' not in amenity_data:
+            name = args['name']
+            if not name:
                 return {
                     'error': 'Amenity name is required'
                 }, 400
             # Create new amenity
-            new_amenity = create_amenity(amenity_data)
+            new_amenity = create_amenity(args)
             if not new_amenity:
                 return {
                     'error': 'Failed to create amenity'
@@ -498,14 +477,11 @@ class AdminAmenityResource(Resource):
                 return {
                     'error': 'Amenity not found'
                 }, 404
+            args = api.payload
             # Get update data from request payload
-            update_data = api.payload
-            if not update_data:
-                return {
-                    'error': 'Update data is required'
-                }, 400
+            name = args.get('name')
             # Update amenity
-            updated_amenity = update_amenity(amenity_id, update_data)
+            updated_amenity = update_amenity(amenity_id, args)
             if not updated_amenity:
                 return {
                     'error': 'Failed to update amenity'
