@@ -4,43 +4,35 @@ Handles user-related HTTP requests and responses.
 """
 
 from typing import Dict, Any, Optional
-from flask_restx import Namespace, Resource, reqparse
+from flask_restx import Namespace, Resource, fields, reqparse
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.services.facade import Facade
 from .response_utils import APIResponse, handle_exceptions
 from .utils import get_current_user, check_ownership_or_admin
 
-api = Namespace('users', description='User operations')
 facade = Facade()
 
-register_parser = reqparse.RequestParser()
-register_parser.add_argument('email', type=str, required=True, help='Email is required')
-register_parser.add_argument('password', type=str, required=True, help='Password is required')
-register_parser.add_argument('first_name', type=str, required=False)
-register_parser.add_argument('last_name', type=str, required=False)
+api = Namespace('users', description='User operations')
+
+register_model = api.model('Register', {
+    'email': fields.String(required=True, description='Email is required'),
+    'password': fields.String(required=True, description='Password is required'),
+    'first_name': fields.String(required=False),
+    'last_name': fields.String(required=False)
+})
 
 @api.route('/register')
 class UserRegister(Resource):
-    @api.expect(register_parser)
-    @api.response(201, 'User created successfully')
-    @api.response(400, 'Bad request')
+    @api.expect(register_model)
     def post(self):
-        """
-        Registro público de usuario normal (no admin).
-        """
-        args = register_parser.parse_args()
+        args = api.payload
         email = args['email']
         password = args['password']
         first_name = args.get('first_name')
         last_name = args.get('last_name')
-
-        # No permitir crear admin desde aquí
         is_admin = False
-
-        # Verificar si ya existe
         if facade.search_users(email):
             return {'error': 'Email already exists'}, 400
-
         try:
             user = facade.create_user({
                 'email': email,
