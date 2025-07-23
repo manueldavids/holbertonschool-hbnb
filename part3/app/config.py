@@ -16,7 +16,7 @@ class BaseConfig:
 
     # Database configuration
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'sqlite:///hbnb_dev.db'
+        'sqlite:///instance/hbnb_dev.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # JWT configuration
@@ -55,7 +55,7 @@ class DevelopmentConfig(BaseConfig):
 
     # Development database
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
-        'sqlite:///hbnb_dev.db'
+        'sqlite:///instance/hbnb_dev.db'
 
     # Development logging
     LOG_LEVEL = 'DEBUG'
@@ -69,7 +69,7 @@ class TestingConfig(BaseConfig):
 
     # Testing database
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
-        'sqlite:///hbnb_test.db'
+        'sqlite:///instance/hbnb_test.db'
 
     # Disable CSRF protection for testing
     WTF_CSRF_ENABLED = False
