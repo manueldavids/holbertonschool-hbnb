@@ -1,0 +1,164 @@
+/* Reset default browser styles */
+* {
+	* margin: 0; 
+	* padding:0;
+	* box-sizing: border-box;
+}
+
+/* Base styles for the document body */
+body {
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	line-height: 1.6;
+	color: #333;
+	background-color: #f8f9fa;
+}
+
+/* Header styling with background */
+header {
+	background-color: #ffffff;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	padding: 1rem;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+/* Logo image sizing */
+.logo img {
+	height: 50px
+}
+
+/* Navigation menu styling */
+nav ul {
+	list-style: none;
+	display: flex;
+}
+
+nav ul li {
+	margin-left: 1.5rem;
+}
+
+nav ul li a {
+	text-decoration: none;
+	color: #333;
+	font-weight: 500;
+	transition: color 0.3s ease;
+}
+
+nav ul li a:hover {
+	color:#ff5a5f;
+}
+
+/* Main content area styling */
+main {
+	padding: 2rem;
+	max-width: 1200px;
+	margin: 0 auto;
+}
+
+/* Special container for authentication forms */
+.auth-container {
+	max-width: 500px;
+	margin: 2rem auto;
+	background: white;
+	padding: 2rem;
+	border-radius: 10px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Form group styling for spacing */
+.from-group {
+	margin-bottom: 1.5rem;
+}
+
+.form-group label {
+	display: block;
+	margin-bottom: 0.5rem;
+	font-weight: 500;
+}
+
+/* Input field styling */
+.form-group input,
+.form-group textarea,
+.form-group select {
+	width: 100%;
+	padding: 0.75rem;
+	border: 1px solid #ddd;
+	border-radius: 6px;
+	font-size: 1rem;
+}
+
+/* Textarea specific styling */
+.form-group textarea {
+	min-height: 100px;
+	resize: vertical;
+}
+
+/* Button styling with hover effect */
+button {
+	background-color: #ff5a5f;
+	color: white;
+	border: none;
+	padding: 0.75rem 1.5rem;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 1rem;
+	font-weight: 600;
+	transition: background-color 0.3s ease;
+}
+
+button:hover {
+	background-color: #e04a50;
+}
+/* Full-width login button */
+.login-button {
+	width: 100%;
+}
+
+/* Places grid container */
+.places-container {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	gap: 2rem;
+	margin-top: 2rem; 
+}
+
+/* Place card styling with hover effect */
+.place-card {
+	border: 1px solid #ddd;
+	border-radius: 10px;
+	overflow: hidden;
+	background: white;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	transition: transform 0.3s ease;
+}
+
+.place-card:hover {
+	transform: translateY(-5px);
+}
+
+/* Place image styling */
+.place-card img{
+	width: 100%;
+	height: 200px;
+	object-fit: cover;
+}
+
+/* Place information padding */
+.place-info {
+	padding: 1rem;
+}
+
+.place-info h2 {
+	margin-bottom: 0.5rem;
+}
+
+/* Price styling with brand color */
+.price {
+	color: #ff5a5f;
+	font-weight: bold;
+	margin-bottom: 1rem;
+}
+
+/* Full-width details button */
+
