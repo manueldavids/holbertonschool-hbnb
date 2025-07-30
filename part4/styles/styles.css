@@ -214,42 +214,4 @@ footer {
     margin-top: 2rem;
 }
 
-/* Responsive design for smaller screens */
-@media (max-width: 768px) {
-    header {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    nav ul {
-        margin-top: 1rem;
-        justify-content: center;
-    }
-    
-    nav ul li {
-        margin: 0 0.75rem;
-    }
-    
-    .places-container {
-        grid-template-columns: 1fr;
-    }
-    
-    .place-details img {
-        height: 300px;
-    }
-}
 
-/* Mobile-specific adjustments */
-@media (max-width: 480px) {
-    main {
-        padding: 1rem;
-    }
-    
-    .auth-container {
-        padding: 1.5rem;
-    }
-    
-    .place-details img {
-        height: 200px;
-    }
-}
