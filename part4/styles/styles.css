@@ -1,164 +1,251 @@
 /* Reset default browser styles */
 * {
-	* margin: 0; 
-	* padding:0;
-	* box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 /* Base styles for the document body */
 body {
-	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-	line-height: 1.6;
-	color: #333;
-	background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f8f9fa;
 }
 
-/* Header styling with background */
+/* Header styling with background and shadow */
 header {
-	background-color: #ffffff;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-	padding: 1rem;
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 /* Logo image sizing */
 .logo img {
-	height: 50px
+    height: 50px;
 }
 
 /* Navigation menu styling */
 nav ul {
-	list-style: none;
-	display: flex;
+    list-style: none;
+    display: flex;
 }
 
 nav ul li {
-	margin-left: 1.5rem;
+    margin-left: 1.5rem;
 }
 
 nav ul li a {
-	text-decoration: none;
-	color: #333;
-	font-weight: 500;
-	transition: color 0.3s ease;
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    transition: color 0.3s ease;
 }
 
 nav ul li a:hover {
-	color:#ff5a5f;
+    color: #ff5a5f;
 }
 
 /* Main content area styling */
 main {
-	padding: 2rem;
-	max-width: 1200px;
-	margin: 0 auto;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 /* Special container for authentication forms */
 .auth-container {
-	max-width: 500px;
-	margin: 2rem auto;
-	background: white;
-	padding: 2rem;
-	border-radius: 10px;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    margin: 2rem auto;
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* Form group styling for spacing */
-.from-group {
-	margin-bottom: 1.5rem;
+.form-group {
+    margin-bottom: 1.5rem;
 }
 
 .form-group label {
-	display: block;
-	margin-bottom: 0.5rem;
-	font-weight: 500;
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
 }
 
 /* Input field styling */
 .form-group input,
 .form-group textarea,
 .form-group select {
-	width: 100%;
-	padding: 0.75rem;
-	border: 1px solid #ddd;
-	border-radius: 6px;
-	font-size: 1rem;
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
 }
 
 /* Textarea specific styling */
 .form-group textarea {
-	min-height: 100px;
-	resize: vertical;
+    min-height: 100px;
+    resize: vertical;
 }
 
 /* Button styling with hover effect */
 button {
-	background-color: #ff5a5f;
-	color: white;
-	border: none;
-	padding: 0.75rem 1.5rem;
-	border-radius: 6px;
-	cursor: pointer;
-	font-size: 1rem;
-	font-weight: 600;
-	transition: background-color 0.3s ease;
+    background-color: #ff5a5f;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
 }
 
 button:hover {
-	background-color: #e04a50;
+    background-color: #e04a50;
 }
+
 /* Full-width login button */
 .login-button {
-	width: 100%;
+    width: 100%;
 }
 
 /* Places grid container */
 .places-container {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-	gap: 2rem;
-	margin-top: 2rem; 
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
 }
 
 /* Place card styling with hover effect */
 .place-card {
-	border: 1px solid #ddd;
-	border-radius: 10px;
-	overflow: hidden;
-	background: white;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-	transition: transform 0.3s ease;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
 }
 
 .place-card:hover {
-	transform: translateY(-5px);
+    transform: translateY(-5px);
 }
 
 /* Place image styling */
-.place-card img{
-	width: 100%;
-	height: 200px;
-	object-fit: cover;
+.place-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
 }
 
 /* Place information padding */
 .place-info {
-	padding: 1rem;
+    padding: 1rem;
 }
 
 .place-info h2 {
-	margin-bottom: 0.5rem;
+    margin-bottom: 0.5rem;
 }
 
 /* Price styling with brand color */
 .price {
-	color: #ff5a5f;
-	font-weight: bold;
-	margin-bottom: 1rem;
+    color: #ff5a5f;
+    font-weight: bold;
+    margin-bottom: 1rem;
 }
 
 /* Full-width details button */
+.details-button {
+    width: 100%;
+}
 
+/* Place details section styling */
+.place-details {
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Place detail image styling */
+.place-details img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+}
+
+.place-info p {
+    margin-bottom: 0.75rem;
+}
+
+/* Reviews section styling */
+.reviews {
+    margin-top: 2rem;
+}
+
+/* Individual review card styling */
+.review-card {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: #f9f9f9;
+}
+
+/* Footer styling */
+footer {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 1.5rem;
+    margin-top: 2rem;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    nav ul {
+        margin-top: 1rem;
+        justify-content: center;
+    }
+    
+    nav ul li {
+        margin: 0 0.75rem;
+    }
+    
+    .places-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .place-details img {
+        height: 300px;
+    }
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 480px) {
+    main {
+        padding: 1rem;
+    }
+    
+    .auth-container {
+        padding: 1.5rem;
+    }
+    
+    .place-details img {
+        height: 200px;
+    }
+}
