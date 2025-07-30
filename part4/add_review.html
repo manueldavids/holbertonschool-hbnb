@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- Page for adding new reviews to a place -->
 <html lang="en">
 	<head>
 		<meta charset="UTF-8">
@@ -21,19 +20,14 @@
 			</nav>
 		</header>
 
-		<!-- Centered form conainer -->
 		<main class="auth-container">
 			<h1>Add Review</h1>
-
-			<!-- Review form with ID for Javascript -->
-			<form id="review-form">
-				<!-- Comment textarea -->
+			<form>
 				<div class="form-group">
 					<label for="comment">Your Review:</label>
 					<textarea id="comment" name="comment" rows="4" required></textarea>
 				</div>
 
-				<!-- Rating selection -->
 				<div class="form-group">
 					<label for="rating">Rating:</label>
 					<select id="rating" name="rating" required>
@@ -46,7 +40,6 @@
 					</select>
 				</div>
 
-				<!-- Form submission button -->
 				<button type="submit">Submit Review</button>
 			</form>
 		</main>
