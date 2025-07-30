@@ -125,9 +125,12 @@ button:hover {
 }
 
 /* Place card styling with hover effect */
+/* FIXED: Added required margin and padding values as per task requirements */
 .place-card {
-    border: 1px solid #ddd;
-    border-radius: 10px;
+    margin: 20px;          /* REQUIRED: 20px margin for place cards as specified in task */
+    padding: 10px;         /* REQUIRED: 10px padding for place cards as specified in task */
+    border: 1px solid #ddd; /* REQUIRED: 1px solid #ddd border as specified in task */
+    border-radius: 10px;    /* REQUIRED: 10px border radius as specified in task */
     overflow: hidden;
     background: white;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -193,11 +196,12 @@ button:hover {
 }
 
 /* Individual review card styling */
+/* FIXED: Updated to use required margin and padding values as per task requirements */
 .review-card {
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    padding: 1rem;
-    margin-bottom: 1rem;
+    margin: 20px;          /* REQUIRED: 20px margin for review cards as specified in task */
+    padding: 10px;         /* REQUIRED: 10px padding for review cards as specified in task */
+    border: 1px solid #ddd; /* REQUIRED: 1px solid #ddd border as specified in task */
+    border-radius: 10px;    /* REQUIRED: 10px border radius as specified in task */
     background: #f9f9f9;
 }
 
