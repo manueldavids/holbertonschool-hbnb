@@ -126,3 +126,30 @@ button {
 	margin-bottom: 1rem;
 }
 
+.place-details {
+	background: white;
+	padding: 2rem;
+	border-radius: 10px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.place-details img {
+	width: 100%;
+	height: 400px;
+	object-fit: cover;
+	border-radius: 10px;
+	margin-bottom: 1.5rem;
+}
+
+.reviews {
+	margin-top: 2rem;
+}
+
+.review-card {
+	margin: 20px;
+	padding: 10px;
+	border: 1px solid #ddd;
+	border-radius: 10px;
+	background: #f9f9f9;
+}
+
