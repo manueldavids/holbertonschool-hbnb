@@ -95,3 +95,34 @@ button {
 	font-size: 1rem;
 }
 
+.places-container {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	gap: 2rem;
+	margin-top: 2rem;
+}
+
+.place-card {
+	margin: 20px;
+	padding: 10px;
+	border: 1px solid #ddd;
+	border-radius: 10px;
+	background: white;
+}
+
+.place-card img {
+	width: 100%;
+	height: 200px;
+	object-fit cover;
+}
+
+.place-info {
+	padding: 1rem;
+}
+
+.price {
+	color: #ff5a5f;
+	font-weight: bold;
+	margin-bottom: 1rem;
+}
+
