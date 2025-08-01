@@ -1,9 +1,9 @@
-// Login functionality for HBnB
+// HBnB - Main JavaScript functionality
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
     
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
+    if ('loginForm') {
+    	loginForm.addEventListener('summit', handleLogin)
     }
 });
 
@@ -27,24 +27,17 @@ async function handleLogin(event) {
             document.cookie = `token=${data.access_token}; path=/`;
             window.location.href = 'index.html';
         } else {
-            showError('Login failed. Please check your credentials.');
+            showError('Login failed.');
         }
     } catch (error) {
-        showError('Network error. Please try again.');
+        showError('Network error.');
     }
 }
 
-function showError(message) {
-    const errorDiv = document.getElementById('error-message') || createErrorDiv();
-    errorDiv.textContent = message;
-    errorDiv.style.display = 'block';
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+	return null;
 }
 
-function createErrorDiv() {
-    const errorDiv = document.createElement('div');
-    errorDiv.id = 'error-message';
-    errorDiv.style.color = 'red';
-    errorDiv.style.marginTop = '10px';
-    document.getElementById('login-form').appendChild(errorDiv);
-    return errorDiv;
-} 
