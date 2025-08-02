@@ -104,8 +104,7 @@ class UserRepository(SQLAlchemyRepository):
             db.session.rollback()
             if "UNIQUE constraint failed" in str(e):
                 raise ValueError(
-                    f"User with email {
-                        user_data.get('email')} already exists")
+                    f"User with email {user_data.get('email')} already exists")
             raise
         except SQLAlchemyError as e:
             db.session.rollback()
@@ -149,8 +148,7 @@ class UserRepository(SQLAlchemyRepository):
             db.session.rollback()
             if "UNIQUE constraint failed" in str(e):
                 raise ValueError(
-                    f"Email {
-                        update_data.get('email')} already exists")
+                    f"Email {update_data.get('email')} already exists")
             raise
         except SQLAlchemyError as e:
             db.session.rollback()

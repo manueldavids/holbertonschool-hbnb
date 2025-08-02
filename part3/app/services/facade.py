@@ -340,8 +340,7 @@ class Facade:
 
             return entity.to_dict() if entity else None
         except ValueError as e:
-            self._log_error(f"Validation error updating {
-                            entity_type} {entity_id}: {e}")
+            self._log_error(f"Validation error updating {entity_type} {entity_id}: {e}")
             raise
         except Exception as e:
             self._log_error(f"Error updating {entity_type} {entity_id}: {e}")
@@ -640,7 +639,7 @@ class Facade:
             list: List of review data dictionaries for the place
         """
         try:
-            reviews = self._get_repository('review').get_by_attribute('place_id', place_id)
+            reviews = self._get_repository('review').get_all_by_attribute('place_id', place_id)
             return [review.to_dict() for review in reviews]
         except Exception as e:
             self._log_error(f"Error getting reviews by place {place_id}: {e}")
@@ -658,7 +657,7 @@ class Facade:
             dict: Review data if found, None otherwise
         """
         try:
-            reviews = self._get_repository('review').get_by_attribute('place_id', place_id)
+            reviews = self._get_repository('review').get_all_by_attribute('place_id', place_id)
             for review in reviews:
                 if review.user_id == user_id:
                     return review.to_dict()

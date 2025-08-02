@@ -54,8 +54,7 @@ class Repository(Generic[T]):
             return self.model.query.get(entity_id)
         except SQLAlchemyError as e:
             self._log_error(
-                f"Error getting {
-                    self.model.__name__} with ID {entity_id}: {e}")
+                f"Error getting {self.model.__name__} with ID {entity_id}: {e}")
             raise
 
     def get_all(self, limit: Optional[int] = None,
@@ -84,8 +83,7 @@ class Repository(Generic[T]):
             return query.all()
         except SQLAlchemyError as e:
             self._log_error(
-                f"Error getting all {
-                    self.model.__name__} entities: {e}")
+                f"Error getting all {self.model.__name__} entities: {e}")
             raise
 
     def create(self, entity_data: Dict[str, Any]) -> T:
@@ -127,8 +125,7 @@ class Repository(Generic[T]):
         except Exception as e:
             db.session.rollback()
             self._log_error(
-                f"Unexpected error creating {
-                    self.model.__name__}: {e}")
+                f"Unexpected error creating {self.model.__name__}: {e}")
             raise
 
     def update(self,
@@ -174,8 +171,7 @@ class Repository(Generic[T]):
         except SQLAlchemyError as e:
             db.session.rollback()
             self._log_error(
-                f"Error updating {
-                    self.model.__name__} {entity_id}: {e}")
+                f"Error updating {self.model.__name__} {entity_id}: {e}")
             raise
 
     def delete(self, entity_id: str) -> bool:
@@ -203,8 +199,7 @@ class Repository(Generic[T]):
         except SQLAlchemyError as e:
             db.session.rollback()
             self._log_error(
-                f"Error deleting {
-                    self.model.__name__} {entity_id}: {e}")
+                f"Error deleting {self.model.__name__} {entity_id}: {e}")
             raise
 
     def count(self) -> int:
@@ -221,8 +216,7 @@ class Repository(Generic[T]):
             return self.model.query.count()
         except SQLAlchemyError as e:
             self._log_error(
-                f"Error counting {
-                    self.model.__name__} entities: {e}")
+                f"Error counting {self.model.__name__} entities: {e}")
             raise
 
     def exists(self, entity_id: str) -> bool:
@@ -245,8 +239,7 @@ class Repository(Generic[T]):
             return self.model.query.get(entity_id) is not None
         except SQLAlchemyError as e:
             self._log_error(
-                f"Error checking existence of {
-                    self.model.__name__} {entity_id}: {e}")
+                f"Error checking existence of {self.model.__name__} {entity_id}: {e}")
             raise
 
     def find_by(self, **kwargs: Any) -> List[T]:
@@ -266,8 +259,7 @@ class Repository(Generic[T]):
             return self.model.query.filter_by(**kwargs).all()
         except SQLAlchemyError as e:
             self._log_error(
-                f"Error finding {
-                    self.model.__name__} by criteria {kwargs}: {e}")
+                f"Error finding {self.model.__name__} by criteria {kwargs}: {e}")
             raise
 
     def find_one_by(self, **kwargs: Any) -> Optional[T]:
@@ -287,8 +279,7 @@ class Repository(Generic[T]):
             return self.model.query.filter_by(**kwargs).first()
         except SQLAlchemyError as e:
             self._log_error(
-                f"Error finding {
-                    self.model.__name__} by criteria {kwargs}: {e}")
+                f"Error finding {self.model.__name__} by criteria {kwargs}: {e}")
             raise
 
     def _validate_entity_data(self, entity_data: Dict[str, Any]) -> None:
@@ -444,6 +435,27 @@ class SQLAlchemyRepository(Repository):
         except Exception as e:
             print(f"Error getting object by attribute: {e}")
             return None
+
+    def get_all_by_attribute(
+            self,
+            attr_name: str,
+            attr_value: Any) -> List[Any]:
+        """
+        Get all objects by a specific attribute value.
+
+        Args:
+            attr_name (str): Attribute name to search by
+            attr_value: Attribute value to search for
+
+        Returns:
+            List of matching objects
+        """
+        try:
+            return self.model.query.filter_by(
+                **{attr_name: attr_value}).all()
+        except Exception as e:
+            print(f"Error getting objects by attribute: {e}")
+            return []
 
     def get_by_attributes(self, filters: Dict[str, Any]) -> List[Any]:
         """

@@ -16,7 +16,7 @@ class BaseConfig:
 
     # Database configuration
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'sqlite:///instance/hbnb_dev.db'
+        'sqlite:///hbnb_dev.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # JWT configuration
@@ -55,7 +55,7 @@ class DevelopmentConfig(BaseConfig):
 
     # Development database
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
-        'sqlite:///instance/hbnb_dev.db'
+        'sqlite:///hbnb_dev.db'
 
     # Development logging
     LOG_LEVEL = 'DEBUG'

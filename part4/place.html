@@ -10,57 +10,133 @@
 		<header>
 			<div class="logo">
 				<img src="images/logo.png" alt="HBnB Logo">
+				<span>hbnb</span>
 			</div>
 			<nav>
 				<ul>
 					<li><a href="index.html">Home</a></li>
-					<li><a href="login.html">Login</a></li>
+					<li><a href="#" id="logout-link">Logout</a></li>
 				</ul>
 			</nav>
 		</header>
 
 		<main>
 			<section class="place-details">
-				<h1>Cozy Apartment</h1>
-				<img src="images/img_place.png" alt="Cozy Apartment">
-
-				<div class="place-info">
+				<h1>Beautiful Beach House</h1>
+				
+				<div class="place-card">
 					<p><strong>Host:</strong> John Doe</p>
 					<p><strong>Price per night:</strong> $150</p>
-					<p><strong>Description:</strong> A beautiful apartment in the heart of the city with all the modern amenities.</p>
-
-					<h2>Amenities</h2>
-					<ul>
-						<li>Wifi</li>
-						<li>Kitchen</li>
-						<li>Free parking</li>
-						<li>Swimming pool</li>
-					</ul>
+					<p><strong>Description:</strong> A beautiful beach house with amazing views...</p>
+					<p><strong>Amenities:</strong> WiFi, Pool, Air Conditioning</p>
+					<div class="add-review-section">
+						<a href="review.html" class="add-review-btn">ADD REVIEW</a>
+					</div>
 				</div>
 
 				<div class="reviews">
 					<h2>Reviews</h2>
-					<article class="review-card">
-						<h3>Jane Smith</h3>
-						<p>Rating: 5/5</p>
-						<p>Amazing place! Would definitely stay again.</p>
-					</article>
-
-					<article class="review-card">
-						<h3>Mike Johnson</h3>
-						<p>Rating: 4/5</p>
-						<p>Great location and comfortable stay.</p>
-					</article>
-				</div>
-
-				<div class="add-review">
-					<button>Add Review</button>
+					<div id="reviews-container">
+						<!-- Reviews will be loaded dynamically here -->
+						<p>Loading reviews...</p>
+					</div>
 				</div>
 			</section>
 		</main>
 
 		<footer>
-			<p>&copy; 2025 HBnB. All rights reserved.</p>
+			<p>&copy; 2024 HBnB Evolution. All rights reserved.</p>
 		</footer>
 	</body>
+	<script src="scripts.js"></script>
+	<script>
+		// Load reviews when page loads
+		document.addEventListener('DOMContentLoaded', function() {
+			loadPlaceReviews();
+		});
+
+		async function loadPlaceReviews() {
+			try {
+				const placeId = 'bd76aaf7-9a01-41ef-9513-312aaed9f7f3'; // Beautiful Beach House
+				const response = await fetch(`${CONFIG.API_BASE_URL}/reviews/place/${placeId}`);
+				
+				if (response.ok) {
+					const data = await response.json();
+					await displayReviewsWithUserNames(data.reviews);
+				} else {
+					console.error('Failed to load reviews');
+					document.getElementById('reviews-container').innerHTML = '<p>No reviews available.</p>';
+				}
+			} catch (error) {
+				console.error('Error loading reviews:', error);
+				document.getElementById('reviews-container').innerHTML = '<p>Error loading reviews.</p>';
+			}
+		}
+
+		async function displayReviewsWithUserNames(reviews) {
+			const container = document.getElementById('reviews-container');
+			
+			if (!reviews || reviews.length === 0) {
+				container.innerHTML = '<p>No reviews yet. Be the first to review this place!</p>';
+				return;
+			}
+
+			container.innerHTML = '';
+			
+			// Get unique user IDs
+			const userIds = [...new Set(reviews.map(review => review.user_id))];
+			const userNames = {};
+			
+			// Try to get user names (this would require an endpoint that we might not have)
+			// For now, we'll use a simple mapping or just show the user ID
+			for (const userId of userIds) {
+				userNames[userId] = `User ${userId.slice(0, 8)}...`;
+			}
+			
+			reviews.forEach(review => {
+				const reviewCard = document.createElement('article');
+				reviewCard.className = 'review-card';
+				
+				// Create star rating
+				const stars = '⭐'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+				
+				reviewCard.innerHTML = `
+					<p><strong>${userNames[review.user_id] || 'Anonymous User'}</strong></p>
+					<p>${review.comment}</p>
+					<p><strong>Rating:</strong> ${stars} (${review.rating}/5)</p>
+					<p><small>Posted on: ${new Date(review.created_at).toLocaleDateString()}</small></p>
+				`;
+				
+				container.appendChild(reviewCard);
+			});
+		}
+
+		function displayReviews(reviews) {
+			const container = document.getElementById('reviews-container');
+			
+			if (!reviews || reviews.length === 0) {
+				container.innerHTML = '<p>No reviews yet. Be the first to review this place!</p>';
+				return;
+			}
+
+			container.innerHTML = '';
+			
+			reviews.forEach(review => {
+				const reviewCard = document.createElement('article');
+				reviewCard.className = 'review-card';
+				
+				// Create star rating
+				const stars = '⭐'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+				
+				reviewCard.innerHTML = `
+					<p><strong>User ID: ${review.user_id}</strong></p>
+					<p>${review.comment}</p>
+					<p><strong>Rating:</strong> ${stars} (${review.rating}/5)</p>
+					<p><small>Posted on: ${new Date(review.created_at).toLocaleDateString()}</small></p>
+				`;
+				
+				container.appendChild(reviewCard);
+			});
+		}
+	</script>
 </html>

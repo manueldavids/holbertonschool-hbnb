@@ -81,6 +81,7 @@ class ReviewsList(Resource):
     """Resource for listing and creating reviews."""
 
     @api.expect(review_model)
+    @jwt_required()
     def post(self):
         """
         Create a new review (authenticated endpoint).

@@ -110,8 +110,7 @@ class ValidationUtils:
         if max_length and len(value) > max_length:
             return (
                 False,
-                f"{field_name} must be no more than {
-                    max_length} chars",
+                f"{field_name} must be no more than {max_length} chars",
             )
         
         return True, None

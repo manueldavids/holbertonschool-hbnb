@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Protection - HBnB</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .authenticated { background-color: #d4edda; color: #155724; }
+        .not-authenticated { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        nav { background: #f8f9fa; padding: 10px; margin: 10px 0; }
+        nav ul { list-style: none; padding: 0; margin: 0; }
+        nav ul li { display: inline; margin-right: 15px; }
+    </style>
+</head>
+<body>
+    <h1>Test Authentication Protection</h1>
+    
+    <div class="status info">
+        <p><strong>Esta página está protegida.</strong> Si no tienes token, serás redirigido a login.html</p>
+    </div>
+    
+    <nav>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="login.html" id="login-link">Login</a></li>
+            <li><a href="register.html" id="register-link">Register</a></li>
+            <li><a href="#" id="logout-link" style="display: none;">Logout</a></li>
+        </ul>
+    </nav>
+    
+    <div id="status" class="status"></div>
+    
+    <div>
+        <button onclick="setToken()">Set Test Token</button>
+        <button onclick="clearToken()">Clear Token</button>
+        <button onclick="checkStatus()">Check Status</button>
+        <button onclick="testLogout()">Test Logout</button>
+        <button onclick="goToProtected()">Go to Protected Page</button>
+    </div>
+
+    <div>
+        <h3>Páginas de prueba:</h3>
+        <ul>
+            <li><a href="login.html">login.html</a> - Página pública</li>
+            <li><a href="register.html">register.html</a> - Página pública</li>
+            <li><a href="index.html">index.html</a> - Página protegida</li>
+            <li><a href="place.html">place.html</a> - Página protegida</li>
+            <li><a href="protected.html">protected.html</a> - Página protegida</li>
+        </ul>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="scripts.js"></script>
+    <script>
+        function setToken() {
+            document.cookie = 'token=test-token-123; path=/';
+            localStorage.setItem('authToken', 'test-token-123');
+            localStorage.setItem('user', JSON.stringify({
+                email: 'test@example.com',
+                first_name: 'Test',
+                last_name: 'User'
+            }));
+            checkStatus();
+        }
+        
+        function clearToken() {
+            document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            checkStatus();
+        }
+        
+        function checkStatus() {
+            const token = getAuthToken();
+            const user = getCurrentUser();
+            const statusDiv = document.getElementById('status');
+            
+            if (token) {
+                statusDiv.className = 'status authenticated';
+                statusDiv.innerHTML = `
+                    <p><strong>✅ Authenticated:</strong> Yes</p>
+                    <p><strong>Token:</strong> ${token}</p>
+                    <p><strong>User:</strong> ${user ? JSON.stringify(user) : 'No user data'}</p>
+                    <p><strong>Status:</strong> Puedes acceder a páginas protegidas</p>
+                `;
+            } else {
+                statusDiv.className = 'status not-authenticated';
+                statusDiv.innerHTML = `
+                    <p><strong>❌ Authenticated:</strong> No</p>
+                    <p><strong>Status:</strong> Serás redirigido a login.html</p>
+                `;
+            }
+            
+            updateNavigation();
+        }
+        
+        function testLogout() {
+            console.log('Testing logout function...');
+            handleLogout({ preventDefault: () => {} });
+        }
+        
+        function goToProtected() {
+            window.location.href = 'protected.html';
+        }
+        
+        // Check status on page load
+        checkStatus();
+    </script>
+</body>
+</html> 

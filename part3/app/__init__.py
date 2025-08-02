@@ -118,8 +118,14 @@ def _initialize_extensions(app, config_name):
         # Initialize JWT
         jwt.init_app(app)
 
-        # Initialize CORS
-        CORS(app)
+        # Initialize CORS with proper configuration for frontend
+        CORS(app, resources={
+            r"/api/*": {
+                "origins": ["*"],
+                "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                "allow_headers": ["Content-Type", "Authorization"]
+            }
+        })
 
         # Initialize Swagger UI for development and testing
         if config_name in ['development', 'testing']:

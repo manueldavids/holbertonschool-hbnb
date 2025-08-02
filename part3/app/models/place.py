@@ -154,3 +154,4 @@ class Place(BaseModel, db.Model):
     def __repr__(self):
         """String representation of the Place instance."""
         return f'<Place {self.name} (ID: {self.id})>' 
+    

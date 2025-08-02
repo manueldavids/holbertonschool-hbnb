@@ -3,31 +3,61 @@
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>HBnB - Places</title>
+		<title>HBnB - Home</title>
 		<link rel="stylesheet" href="styles/styles.css">
 	</head>
 	<body>
 		<header>
 			<div class="logo">
 				<img src="images/logo.png" alt="HBnB Logo">
+				<span>hbnb</span>
 			</div>
 			<nav>
 				<ul>
 					<li><a href="index.html">Home</a></li>
-					<li><a href="login.html">Login</a></li>
+					<li><a href="login.html" id="login-link">Login</a></li>
+					<li><a href="register.html" id="register-link">Register</a></li>
 				</ul>
 			</nav>
 		</header>
 
 		<main>
 			<h1>Available Places</h1>
+			
+			<section class="filter-section">
+				<label for="max-price">Max Price:</label>
+				<select id="max-price">
+					<option value="all">All</option>
+					<option value="100">$100</option>
+					<option value="150">$150</option>
+					<option value="200">$200</option>
+					<option value="250">$250</option>
+				</select>
+			</section>
+
 			<section class="places-container">
-				<!-- Places will be loaded dynamically here -->
+				<article class="place-card" data-price="150">
+					<h3>Beautiful Beach House</h3>
+					<p class="price">Price per night: $150</p>
+					<button class="view-details-btn" onclick="viewPlaceDetails('beautiful-beach-house')">View Details</button>
+				</article>
+
+				<article class="place-card" data-price="100">
+					<h3>Cozy Cabin</h3>
+					<p class="price">Price per night: $100</p>
+					<button class="view-details-btn" onclick="viewPlaceDetails('cozy-cabin')">View Details</button>
+				</article>
+
+				<article class="place-card" data-price="200">
+					<h3>Modern Apartment</h3>
+					<p class="price">Price per night: $200</p>
+					<button class="view-details-btn" onclick="viewPlaceDetails('modern-apartment')">View Details</button>
+				</article>
 			</section>
 		</main>
 
 		<footer>
-			<p>&copy; 2025 HBnB. All rights reserved.</p>
+			<p>&copy; 2024 HBnB Evolution. All rights reserved.</p>
 		</footer>
 	</body>
 	<script src="scripts.js"></script>

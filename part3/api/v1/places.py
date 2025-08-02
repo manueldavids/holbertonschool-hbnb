@@ -42,6 +42,22 @@ error_model = {
 
 @api.route('/')
 class PlacesList(Resource):
+    def get(self):
+        """
+        Get all places (public endpoint).
+        """
+        try:
+            places = facade.get_all_places()
+            return {
+                'places': places,
+                'count': len(places)
+            }, 200
+        except Exception as e:
+            return {
+                'error': 'Failed to retrieve places',
+                'details': str(e)
+            }, 500
+
     @jwt_required()
     @api.expect(place_model)
     def post(self):
@@ -89,6 +105,7 @@ class PlacesList(Resource):
             }, 500
 
 
+@api.route('/<string:place_id>')
 class PlaceResource(Resource):
     """Resource for individual place operations."""
 
@@ -113,7 +130,7 @@ class PlaceResource(Resource):
                     'error': 'Place not found'
                 }, 404
 
-            return place.to_dict(), 200
+            return place, 200
 
         except Exception as e:
             return {

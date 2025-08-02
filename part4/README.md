@@ -1,286 +1,150 @@
-# Holberton School HBNB
+# HBnB Frontend (Part 4)
 
-A comprehensive Airbnb-like web application built with Flask and Flask-RESTX, featuring a RESTful API with Swagger documentation.
+Este es el frontend de la aplicación HBnB que se conecta con el backend API (Part 3).
 
-## Table of Contents
+## 🚀 Ejecución Rápida
 
-- [Project Overview](#project-overview)
-- [Features](#features)
-- [API Documentation](#api-documentation)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Testing](#testing)
-- [Project Structure](#project-structure)
-- [Technologies Used](#technologies-used)
-
-## Project Overview
-
-HBNB is a web application that provides a RESTful API for managing users, places, amenities, and reviews. The application follows a layered architecture pattern with a Facade design pattern for simplified data access.
-
-### Key Features:
-- **RESTful API** with comprehensive CRUD operations
-- **Swagger Documentation** for easy API exploration
-- **In-Memory Data Storage** with UUID-based identification
-- **Input Validation** and error handling
-- **Modular Architecture** with clear separation of concerns
-
-## Features
-
-### Core Functionality
-- **User Management**: Create, read, update users with email validation
-- **Place Management**: Manage rental properties with location and pricing
-- **Amenity Management**: Handle property amenities and features
-- **Review System**: User reviews and ratings for places
-- **Relationship Management**: Connect users, places, amenities, and reviews
-
-### Technical Features
-- **UUID-based IDs**: Secure and unique identifier generation
-- **Data Validation**: Input validation with proper error responses
-- **HTTP Status Codes**: Proper REST API status code implementation
-- **JSON Responses**: Consistent JSON response format
-- **Error Handling**: Comprehensive error handling and user feedback
-
-## API Documentation
-
-### Base URL
-```
-http://127.0.0.1:5000/api/v1
-```
-
-### Available Endpoints
-
-#### Users (`/users`)
-- `GET /users/` - Get all users
-- `POST /users/` - Create a new user
-- `GET /users/<user_id>` - Get user by ID
-- `PUT /users/<user_id>` - Update user
-
-#### Amenities (`/amenities`)
-- `GET /amenities/` - Get all amenities
-- `POST /amenities/` - Create a new amenity
-- `GET /amenities/<amenity_id>` - Get amenity by ID
-- `PUT /amenities/<amenity_id>` - Update amenity
-
-#### Places (`/places`)
-- `GET /places/` - Get all places
-- `POST /places/` - Create a new place
-- `GET /places/<place_id>` - Get place by ID with details
-- `PUT /places/<place_id>` - Update place
-- `GET /places/<place_id>/reviews` - Get reviews for a place
-
-#### Reviews (`/reviews`)
-- `GET /reviews/` - Get all reviews
-- `POST /reviews/` - Create a new review
-- `GET /reviews/<review_id>` - Get review by ID
-- `PUT /reviews/<review_id>` - Update review
-- `DELETE /reviews/<review_id>` - Delete review
-- `GET /reviews/places/<place_id>/reviews` - Get reviews for a place
-
-### Interactive API Documentation
-Access the Swagger UI at: `http://127.0.0.1:5000/api/v1/`
-
-## Installation
-
-### Prerequisites
-- Python 3.8 or higher
-- pip (Python package installer)
-
-### Setup Instructions
-
-1. **Clone the repository**
+### Opción 1: Script Automático (Recomendado)
 ```bash
-git clone <repository-url>
-cd holbertonschool-hbnb
+# Desde la raíz del proyecto
+./start_app.sh
 ```
 
-2. **Navigate to the project directory**
+### Opción 2: Manual (Dos Terminales)
 ```bash
-cd part2/hbnb
+# Terminal 1: Backend API (Part 3)
+cd part3
+python3 run.py
+
+# Terminal 2: Frontend (Part 4)
+cd part4
+python3 -m http.server 8000
 ```
 
-3. **Install dependencies**
-```bash
-pip install -r requirements.txt
+## 🌐 URLs de Acceso
+
+Una vez ejecutada, podrás acceder a:
+
+- **Frontend**: http://localhost:8000
+- **Backend API**: http://localhost:5000
+- **Documentación API**: http://localhost:5000/api/v1/swagger
+
+## 📋 Funcionalidades
+
+### Para Usuarios No Autenticados
+- Ver lugares de demostración
+- Filtrar lugares por precio
+- Navegar por la interfaz
+- **Registrar nueva cuenta**
+
+### Para Usuarios Autenticados
+- Iniciar sesión con email y contraseña
+- Ver lugares reales desde la API
+- Ver detalles de lugares
+- Agregar reseñas (funcionalidad en desarrollo)
+
+## 🔧 Configuración
+
+### Requisitos Previos
+1. **Backend API (Part 3)**: Debe estar ejecutándose en puerto 5000
+2. **Base de Datos**: El backend debe tener la base de datos configurada
+3. **CORS**: Configurado para permitir peticiones desde localhost:8000
+
+### Estructura de Archivos
+```
+part4/
+├── index.html          # Página principal
+├── login.html          # Página de login
+├── register.html       # Página de registro (NUEVA)
+├── place.html          # Página de detalles de lugar
+├── add_review.html     # Página para agregar reseñas
+├── config.js           # Configuración de URLs (NUEVO)
+├── scripts.js          # Lógica JavaScript principal
+├── styles/
+│   └── styles.css      # Estilos CSS
+└── images/             # Imágenes del sitio
 ```
 
-4. **Run the application**
-```bash
-python run.py
-```
+## 🔌 Conexión con el Backend
 
-The application will start on `http://127.0.0.1:5000`
+El frontend se conecta con el backend a través de:
 
-## Usage
+### Endpoints Utilizados
+- `POST /api/v1/auth/login` - Autenticación
+- `POST /api/v1/users/register` - Registro de usuarios (NUEVO)
+- `GET /api/v1/places/` - Obtener lugares
+- `GET /api/v1/places/<id>` - Obtener detalles de lugar
+- `POST /api/v1/reviews/` - Crear reseñas
 
-### Starting the Server
-```bash
-python run.py
-```
+### Configuración CORS
+El backend está configurado para aceptar peticiones desde:
+- http://localhost:8000
+- http://localhost:8001
+- http://127.0.0.1:8000
+- http://127.0.0.1:8001
 
-### Example API Calls
+## 🐛 Solución de Problemas
 
-#### Create a User
-```bash
-curl -X POST http://127.0.0.1:5000/api/v1/users/ \
-  -H "Content-Type: application/json" \
-  -d '{"first_name": "John", "last_name": "Doe", "email": "john@example.com"}'
-```
+### Error: "WebSocket connection failed"
+- **Causa**: Estás usando Live Server en lugar del servidor HTTP simple
+- **Solución**: Usa `python3 -m http.server 8000` en lugar de Live Server
 
-#### Create an Amenity
-```bash
-curl -X POST http://127.0.0.1:5000/api/v1/amenities/ \
-  -H "Content-Type: application/json" \
-  -d '{"name": "WiFi"}'
-```
+### Error: "Failed to load places"
+- Verifica que el backend esté ejecutándose en puerto 5000
+- Revisa la consola del navegador para errores de CORS
+- Asegúrate de que la base de datos esté inicializada
 
-#### Create a Place
-```bash
-curl -X POST http://127.0.0.1:5000/api/v1/places/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Beautiful Apartment",
-    "description": "Cozy place in downtown",
-    "price": 150.0,
-    "latitude": 40.7128,
-    "longitude": -74.0060,
-    "owner_id": "user-uuid-here",
-    "amenities": ["amenity-uuid-here"]
-  }'
-```
+### Error: "Login failed"
+- Verifica que el usuario exista en la base de datos
+- Revisa que el backend esté funcionando correctamente
+- Comprueba los logs del backend para errores
 
-#### Create a Review
-```bash
-curl -X POST http://127.0.0.1:5000/api/v1/reviews/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "text": "Great place to stay!",
-    "rating": 5,
-    "user_id": "user-uuid-here",
-    "place_id": "place-uuid-here"
-  }'
-```
+### Error: "Network error"
+- Verifica que ambos servicios estén ejecutándose
+- Comprueba que los puertos no estén ocupados
+- Revisa la configuración de CORS en el backend
 
-## Testing
+## 📝 Desarrollo
 
-### Manual Testing with cURL
+### Agregar Nuevas Funcionalidades
+1. Modifica los archivos HTML según sea necesario
+2. Actualiza `scripts.js` para la lógica JavaScript
+3. Actualiza `styles.css` para los estilos
+4. Prueba la integración con el backend
 
-The project includes comprehensive testing capabilities. You can test all endpoints using the provided curl commands:
+### Personalización
+- **Colores**: Modifica las variables CSS en `styles.css`
+- **Layout**: Edita los archivos HTML
+- **Funcionalidad**: Modifica `scripts.js`
+- **URLs**: Modifica `config.js`
 
-1. **Test User Endpoints**
-```bash
-# Get all users
-curl -X GET http://127.0.0.1:5000/api/v1/users/
+## 🔒 Seguridad
 
-# Create a user
-curl -X POST http://127.0.0.1:5000/api/v1/users/ \
-  -H "Content-Type: application/json" \
-  -d '{"first_name": "Test", "last_name": "User", "email": "test@example.com"}'
-```
+- Las peticiones autenticadas usan JWT tokens
+- Los tokens se almacenan en cookies del navegador
+- Las peticiones incluyen headers de autorización
+- CORS está configurado para prevenir ataques CSRF
 
-2. **Test Place Endpoints**
-```bash
-# Get all places
-curl -X GET http://127.0.0.1:5000/api/v1/places/
+## 📊 Estado del Proyecto
 
-# Get place details
-curl -X GET http://127.0.0.1:5000/api/v1/places/<place-id>
-```
+- ✅ Página principal funcional
+- ✅ Sistema de login
+- ✅ **Sistema de registro (NUEVO)**
+- ✅ Visualización de lugares
+- ✅ Filtros de precio
+- 🔄 Sistema de reseñas (en desarrollo)
+- 🔄 Gestión de usuarios (en desarrollo)
 
-### Automated Testing
-Refer to `TESTING_REPORT.md` for detailed testing documentation and results.
+## 🤝 Contribución
 
-## Project Structure
+Para contribuir al proyecto:
 
-```
-holbertonschool-hbnb/
-├── part1/                          # Project documentation and diagrams
-│   ├── BusinessLogicLayer.png
-│   ├── High-LevelPackageDiagram.png
-│   ├── PlaceCreation.png
-│   ├── RetrievePlacesbyCity.png
-│   ├── SummitAReview.png
-│   ├── UserRegristation.png
-│   └── README.md
-├── part2/                          # Main application
-│   └── hbnb/
-│       ├── app/                    # Application core
-│       │   ├── __init__.py         # Flask app initialization
-│       │   ├── api/                # API endpoints
-│       │   │   └── v1/
-│       │   │       ├── users.py    # User endpoints
-│       │   │       ├── places.py   # Place endpoints
-│       │   │       ├── amenities.py # Amenity endpoints
-│       │   │       └── reviews.py  # Review endpoints
-│       │   ├── models/             # Data models
-│       │   │   ├── base_model.py   # Base model class
-│       │   │   ├── user.py         # User model
-│       │   │   ├── place.py        # Place model
-│       │   │   ├── amenity.py      # Amenity model
-│       │   │   └── review.py       # Review model
-│       │   ├── services/           # Business logic
-│       │   │   └── facade.py       # Facade pattern implementation
-│       │   └── persistence/        # Data persistence
-│       │       └── repository.py   # In-memory repository
-│       ├── config.py               # Configuration settings
-│       ├── run.py                  # Application entry point
-│       ├── requirements.txt        # Python dependencies
-│       ├── README.md               # Project documentation
-│       └── TESTING_REPORT.md       # Testing documentation
-└── README.md                       # Main project README
-```
+1. Fork el repositorio
+2. Crea una rama para tu feature
+3. Haz tus cambios
+4. Prueba la integración con el backend
+5. Envía un pull request
 
-## Technologies Used
+## 📄 Licencia
 
-- **Backend Framework**: Flask 2.3.3
-- **API Framework**: Flask-RESTX 1.1.0
-- **Documentation**: Swagger/OpenAPI
-- **Data Storage**: In-Memory Repository
-- **Language**: Python 3.12
-- **Architecture**: Facade Pattern, Layered Architecture
-
-## API Response Format
-
-### Success Response
-```json
-{
-  "id": "uuid-string",
-  "field1": "value1",
-  "field2": "value2"
-}
-```
-
-### Error Response
-```json
-{
-  "error": "Error message description"
-}
-```
-
-## Configuration
-
-The application uses a simple configuration system in `config.py`:
-
-- **Development Mode**: Debug enabled
-- **Secret Key**: Configurable via environment variable
-- **Host**: 127.0.0.1 (localhost)
-- **Port**: 5000
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
-
-## License
-
-This project is part of the Holberton School curriculum.
-
-## Author
-
-Created as part of Holberton School's software engineering program.
-
----
-
-**Note**: This is an educational project demonstrating RESTful API development with Flask and proper software architecture patterns. 
+Este proyecto es parte del currículo de Holberton School. 

@@ -1,85 +1,121 @@
 # Holberton School HBNB
 
-A comprehensive Airbnb-like web application built with Flask and Flask-RESTX, featuring a RESTful API with Swagger documentation.
+A comprehensive Airbnb-like web application built with Flask and Flask-RESTX, featuring a RESTful API with Swagger documentation and a modern frontend.
 
-## Table of Contents
+## 🚀 Quick Start
 
-- [Project Overview](#project-overview)
-- [Features](#features)
-- [API Documentation](#api-documentation)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Testing](#testing)
-- [Project Structure](#project-structure)
-- [Technologies Used](#technologies-used)
+### Option 1: Automatic Script (Recommended)
+```bash
+# Run both backend and frontend automatically
+./run_part4.sh
+```
 
-## Project Overview
+### Option 2: Python Script
+```bash
+# Run both backend and frontend automatically
+python3 run_app.py
+```
 
-HBNB is a web application that provides a RESTful API for managing users, places, amenities, and reviews. The application follows a layered architecture pattern with a Facade design pattern for simplified data access.
+### Option 3: Manual (Two Terminals)
+```bash
+# Terminal 1: Start Backend API (Part 3)
+./start_backend.sh
 
-### Key Features:
+# Terminal 2: Start Frontend (Part 4)
+./start_frontend.sh
+```
+
+## 🌐 Application URLs
+
+Once running, you can access:
+
+- **Frontend**: http://localhost:8000 (or 8001 if 8000 is busy)
+- **Backend API**: http://localhost:5000
+- **API Documentation**: http://localhost:5000/api/v1/swagger
+
+## 📁 Project Structure
+
+```
+holbertonschool-hbnb/
+├── part1/                          # Project documentation and diagrams
+├── part2/                          # Initial API implementation
+├── part3/                          # Complete backend API with database
+│   ├── app/                        # Flask application
+│   ├── api/                        # REST API endpoints
+│   ├── migrations/                 # Database migrations
+│   └── run.py                      # Application entry point
+├── part4/                          # Frontend web application
+│   ├── index.html                  # Main page
+│   ├── login.html                  # Login page
+│   ├── place.html                  # Place details page
+│   ├── add_review.html             # Add review page
+│   ├── scripts.js                  # JavaScript functionality
+│   ├── styles/                     # CSS styles
+│   └── images/                     # Website images
+├── run_app.py                      # Python script to run both services
+├── run_part4.sh                    # Shell script to run both services
+├── start_backend.sh                # Script to start backend only
+├── start_frontend.sh               # Script to start frontend only
+└── README.md                       # This file
+```
+
+## 🔧 Features
+
+### Backend API (Part 3)
 - **RESTful API** with comprehensive CRUD operations
+- **JWT Authentication** for secure user sessions
+- **SQLAlchemy ORM** with SQLite database
 - **Swagger Documentation** for easy API exploration
-- **In-Memory Data Storage** with UUID-based identification
+- **CORS Configuration** for frontend integration
 - **Input Validation** and error handling
 - **Modular Architecture** with clear separation of concerns
 
-## Features
+### Frontend (Part 4)
+- **Modern Web Interface** with responsive design
+- **User Authentication** with JWT tokens
+- **Place Browsing** with filtering capabilities
+- **Interactive UI** with smooth navigation
+- **Real-time API Integration** with backend
+- **Demo Mode** for non-authenticated users
 
-### Core Functionality
-- **User Management**: Create, read, update users with email validation
-- **Place Management**: Manage rental properties with location and pricing
-- **Amenity Management**: Handle property amenities and features
-- **Review System**: User reviews and ratings for places
-- **Relationship Management**: Connect users, places, amenities, and reviews
+## 📋 API Endpoints
 
-### Technical Features
-- **UUID-based IDs**: Secure and unique identifier generation
-- **Data Validation**: Input validation with proper error responses
-- **HTTP Status Codes**: Proper REST API status code implementation
-- **JSON Responses**: Consistent JSON response format
-- **Error Handling**: Comprehensive error handling and user feedback
+### Authentication
+- `POST /api/v1/auth/login` - User login
+- `POST /api/v1/auth/refresh` - Refresh JWT token
+- `POST /api/v1/auth/logout` - User logout
 
-## API Documentation
+### Users
+- `POST /api/v1/users/register` - User registration
+- `GET /api/v1/users/search` - Search users
+- `GET /api/v1/users/admin/<status>` - Get users by admin status
 
-### Base URL
-```
-http://127.0.0.1:5000/api/v1
-```
+### Places
+- `GET /api/v1/places/` - Get all places
+- `POST /api/v1/places/` - Create a new place
+- `GET /api/v1/places/<id>` - Get place details
+- `PUT /api/v1/places/<id>` - Update place
+- `DELETE /api/v1/places/<id>` - Delete place
 
-### Available Endpoints
+### Reviews
+- `GET /api/v1/reviews/` - Get all reviews
+- `POST /api/v1/reviews/` - Create a new review
+- `GET /api/v1/reviews/<id>` - Get review details
+- `PUT /api/v1/reviews/<id>` - Update review
+- `DELETE /api/v1/reviews/<id>` - Delete review
+- `GET /api/v1/reviews/place/<place_id>` - Get reviews for a place
 
-#### Users (`/users`)
-- `GET /users/` - Get all users
-- `POST /users/` - Create a new user
-- `GET /users/<user_id>` - Get user by ID
-- `PUT /users/<user_id>` - Update user
+### Admin (Admin users only)
+- `POST /api/v1/admin/users` - Create user (admin)
+- `GET /api/v1/admin/users` - Get all users (admin)
+- `PUT /api/v1/admin/users/<id>` - Update user (admin)
+- `DELETE /api/v1/admin/users/<id>` - Delete user (admin)
+- `POST /api/v1/admin/amenities` - Create amenity (admin)
+- `GET /api/v1/admin/amenities` - Get all amenities (admin)
+- `PUT /api/v1/admin/amenities/<id>` - Update amenity (admin)
+- `DELETE /api/v1/admin/amenities/<id>` - Delete amenity (admin)
 
-#### Amenities (`/amenities`)
-- `GET /amenities/` - Get all amenities
-- `POST /amenities/` - Create a new amenity
-- `GET /amenities/<amenity_id>` - Get amenity by ID
-- `PUT /amenities/<amenity_id>` - Update amenity
-
-#### Places (`/places`)
-- `GET /places/` - Get all places
-- `POST /places/` - Create a new place
-- `GET /places/<place_id>` - Get place by ID with details
-- `PUT /places/<place_id>` - Update place
-- `GET /places/<place_id>/reviews` - Get reviews for a place
-
-#### Reviews (`/reviews`)
-- `GET /reviews/` - Get all reviews
-- `POST /reviews/` - Create a new review
-- `GET /reviews/<review_id>` - Get review by ID
-- `PUT /reviews/<review_id>` - Update review
-- `DELETE /reviews/<review_id>` - Delete review
-- `GET /reviews/places/<place_id>/reviews` - Get reviews for a place
-
-### Interactive API Documentation
-Access the Swagger UI at: `http://127.0.0.1:5000/api/v1/`
-
-## Installation
+## 🛠️ Installation
 
 ### Prerequisites
 - Python 3.8 or higher
@@ -93,194 +129,167 @@ git clone <repository-url>
 cd holbertonschool-hbnb
 ```
 
-2. **Navigate to the project directory**
+2. **Install backend dependencies**
 ```bash
-cd part2/hbnb
-```
-
-3. **Install dependencies**
-```bash
+cd part3
 pip install -r requirements.txt
+pip install requests
+cd ..
 ```
 
-4. **Run the application**
+3. **Initialize database (optional)**
 ```bash
-python run.py
+cd part3
+python3 -c "from app import create_app, db; app = create_app(); app.app_context().push(); db.create_all()"
+cd ..
 ```
 
-The application will start on `http://127.0.0.1:5000`
+## 🚀 Usage
 
-## Usage
+### Running the Complete Application
 
-### Starting the Server
+The easiest way to run the complete application is using the automatic scripts:
+
 ```bash
-python run.py
+# Option 1: Shell script
+./run_part4.sh
+
+# Option 2: Python script
+python3 run_app.py
 ```
 
-### Example API Calls
+### Running Individual Components
 
-#### Create a User
+If you want to run components separately:
+
 ```bash
-curl -X POST http://127.0.0.1:5000/api/v1/users/ \
+# Backend API only
+./start_backend.sh
+
+# Frontend only (in another terminal)
+./start_frontend.sh
+```
+
+### Manual Execution
+
+```bash
+# Terminal 1: Backend
+cd part3
+python3 run.py
+
+# Terminal 2: Frontend
+cd part4
+python3 -m http.server 8000
+```
+
+## 🧪 Testing
+
+### API Testing
+You can test the API endpoints using the Swagger UI:
+- Visit: http://localhost:5000/api/v1/swagger
+
+### Frontend Testing
+- Open http://localhost:8000 in your browser
+- Try the login functionality
+- Browse places and test filters
+
+### Manual API Testing with cURL
+
+```bash
+# Test login
+curl -X POST http://localhost:5000/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"first_name": "John", "last_name": "Doe", "email": "john@example.com"}'
+  -d '{"email": "test@example.com", "password": "password123"}'
+
+# Test getting places (with token)
+curl -X GET http://localhost:5000/api/v1/places/ \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
 ```
 
-#### Create an Amenity
-```bash
-curl -X POST http://127.0.0.1:5000/api/v1/amenities/ \
-  -H "Content-Type: application/json" \
-  -d '{"name": "WiFi"}'
-```
+## 🔧 Configuration
 
-#### Create a Place
-```bash
-curl -X POST http://127.0.0.1:5000/api/v1/places/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Beautiful Apartment",
-    "description": "Cozy place in downtown",
-    "price": 150.0,
-    "latitude": 40.7128,
-    "longitude": -74.0060,
-    "owner_id": "user-uuid-here",
-    "amenities": ["amenity-uuid-here"]
-  }'
-```
-
-#### Create a Review
-```bash
-curl -X POST http://127.0.0.1:5000/api/v1/reviews/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "text": "Great place to stay!",
-    "rating": 5,
-    "user_id": "user-uuid-here",
-    "place_id": "place-uuid-here"
-  }'
-```
-
-## Testing
-
-### Manual Testing with cURL
-
-The project includes comprehensive testing capabilities. You can test all endpoints using the provided curl commands:
-
-1. **Test User Endpoints**
-```bash
-# Get all users
-curl -X GET http://127.0.0.1:5000/api/v1/users/
-
-# Create a user
-curl -X POST http://127.0.0.1:5000/api/v1/users/ \
-  -H "Content-Type: application/json" \
-  -d '{"first_name": "Test", "last_name": "User", "email": "test@example.com"}'
-```
-
-2. **Test Place Endpoints**
-```bash
-# Get all places
-curl -X GET http://127.0.0.1:5000/api/v1/places/
-
-# Get place details
-curl -X GET http://127.0.0.1:5000/api/v1/places/<place-id>
-```
-
-### Automated Testing
-Refer to `TESTING_REPORT.md` for detailed testing documentation and results.
-
-## Project Structure
-
-```
-holbertonschool-hbnb/
-├── part1/                          # Project documentation and diagrams
-│   ├── BusinessLogicLayer.png
-│   ├── High-LevelPackageDiagram.png
-│   ├── PlaceCreation.png
-│   ├── RetrievePlacesbyCity.png
-│   ├── SummitAReview.png
-│   ├── UserRegristation.png
-│   └── README.md
-├── part2/                          # Main application
-│   └── hbnb/
-│       ├── app/                    # Application core
-│       │   ├── __init__.py         # Flask app initialization
-│       │   ├── api/                # API endpoints
-│       │   │   └── v1/
-│       │   │       ├── users.py    # User endpoints
-│       │   │       ├── places.py   # Place endpoints
-│       │   │       ├── amenities.py # Amenity endpoints
-│       │   │       └── reviews.py  # Review endpoints
-│       │   ├── models/             # Data models
-│       │   │   ├── base_model.py   # Base model class
-│       │   │   ├── user.py         # User model
-│       │   │   ├── place.py        # Place model
-│       │   │   ├── amenity.py      # Amenity model
-│       │   │   └── review.py       # Review model
-│       │   ├── services/           # Business logic
-│       │   │   └── facade.py       # Facade pattern implementation
-│       │   └── persistence/        # Data persistence
-│       │       └── repository.py   # In-memory repository
-│       ├── config.py               # Configuration settings
-│       ├── run.py                  # Application entry point
-│       ├── requirements.txt        # Python dependencies
-│       ├── README.md               # Project documentation
-│       └── TESTING_REPORT.md       # Testing documentation
-└── README.md                       # Main project README
-```
-
-## Technologies Used
-
-- **Backend Framework**: Flask 2.3.3
-- **API Framework**: Flask-RESTX 1.1.0
-- **Documentation**: Swagger/OpenAPI
-- **Data Storage**: In-Memory Repository
-- **Language**: Python 3.12
-- **Architecture**: Facade Pattern, Layered Architecture
-
-## API Response Format
-
-### Success Response
-```json
-{
-  "id": "uuid-string",
-  "field1": "value1",
-  "field2": "value2"
-}
-```
-
-### Error Response
-```json
-{
-  "error": "Error message description"
-}
-```
-
-## Configuration
-
-The application uses a simple configuration system in `config.py`:
+### Backend Configuration
+The backend uses a configuration system in `part3/app/config.py`:
 
 - **Development Mode**: Debug enabled
-- **Secret Key**: Configurable via environment variable
-- **Host**: 127.0.0.1 (localhost)
-- **Port**: 5000
+- **Database**: SQLite by default (configurable)
+- **JWT**: Configurable expiration times
+- **CORS**: Configured for frontend integration
 
-## Contributing
+### Frontend Configuration
+The frontend connects to the backend via:
+
+- **API Base URL**: http://localhost:5000/api/v1
+- **CORS**: Configured to allow frontend requests
+- **Authentication**: JWT token-based
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **Port already in use**
+   - Stop any existing services on ports 5000 and 8000
+   - The scripts will automatically use alternative ports if needed
+
+2. **Database errors**
+   - Ensure the database is initialized: `python3 -c "from app import create_app, db; app = create_app(); app.app_context().push(); db.create_all()"`
+
+3. **CORS errors**
+   - Verify the backend is running on port 5000
+   - Check that CORS is properly configured in the backend
+
+4. **Authentication issues**
+   - Ensure users exist in the database
+   - Check JWT token expiration
+
+### Debug Mode
+
+To run in debug mode:
+
+```bash
+# Backend with debug
+cd part3
+FLASK_ENV=development python3 run.py
+
+# Frontend with debug (check browser console)
+cd part4
+python3 -m http.server 8000
+```
+
+## 📊 Technologies Used
+
+### Backend
+- **Flask 2.3.3** - Web framework
+- **Flask-RESTX** - API framework with Swagger
+- **SQLAlchemy** - ORM for database operations
+- **Flask-JWT-Extended** - JWT authentication
+- **Flask-CORS** - Cross-origin resource sharing
+- **Flask-Bcrypt** - Password hashing
+- **Alembic** - Database migrations
+
+### Frontend
+- **HTML5** - Structure
+- **CSS3** - Styling
+- **JavaScript (ES6+)** - Interactivity
+- **Fetch API** - HTTP requests
+- **Local Storage/Cookies** - Session management
+
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests for new functionality
+4. Test both backend and frontend
 5. Submit a pull request
 
-## License
+## 📄 License
 
 This project is part of the Holberton School curriculum.
 
-## Author
+## 👨‍💻 Author
 
 Created as part of Holberton School's software engineering program.
 
 ---
 
-**Note**: This is an educational project demonstrating RESTful API development with Flask and proper software architecture patterns. 
+**Note**: This is an educational project demonstrating full-stack web development with Flask backend and modern frontend integration. 

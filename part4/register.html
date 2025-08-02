@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>HBnB - Login</title>
+		<title>HBnB - Register</title>
 		<link rel="stylesheet" href="styles/styles.css">
 	</head>
 	<body>
@@ -23,8 +23,8 @@
 
 		<main>
 			<div class="auth-container">
-				<h2>Login</h2>
-				<form id="login-form">
+				<h2>Register</h2>
+				<form id="register-form">
 					<div class="form-group">
 						<label for="email">Email:</label>
 						<input type="email" id="email" name="email" required>
@@ -33,10 +33,18 @@
 						<label for="password">Password:</label>
 						<input type="password" id="password" name="password" required>
 					</div>
-					<button type="submit">Login</button>
+					<div class="form-group">
+						<label for="first_name">First Name:</label>
+						<input type="text" id="first_name" name="first_name" required>
+					</div>
+					<div class="form-group">
+						<label for="last_name">Last Name:</label>
+						<input type="text" id="last_name" name="last_name" required>
+					</div>
+					<button type="submit">Register</button>
 				</form>
 				<div class="auth-link">
-					Don't have an account? <a href="register.html">Register here</a>
+					Already have an account? <a href="login.html">Login here</a>
 				</div>
 			</div>
 		</main>
@@ -46,5 +54,4 @@
 		</footer>
 	</body>
 	<script src="scripts.js"></script>
-</html>
-
+</html> 
