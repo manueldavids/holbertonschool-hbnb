@@ -22,9 +22,9 @@ EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
 admin_user_model = api.model('AdminUser', {
     'email': fields.String(required=True, description='User email address'),
     'password': fields.String(required=True, description='User password (min 6 chars)'),
-    'first_name': fields.String(required=False),
-    'last_name': fields.String(required=False),
-    'is_admin': fields.Boolean(required=False, default=False)
+    'first_name': fields.String(required=True),
+    'last_name': fields.String(required=True),
+    'is_admin': fields.Boolean(default=False)
 })
 
 admin_user_update_model = api.model('AdminUserUpdate', {
@@ -34,7 +34,6 @@ admin_user_update_model = api.model('AdminUserUpdate', {
     'last_name': fields.String(description='User last name'),
     'is_admin': fields.Boolean(description='Admin privileges flag')
 })
-
 amenity_creation_model = api.model('AmenityCreation', {
     'name': fields.String(
         required=True,
