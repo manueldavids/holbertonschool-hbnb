@@ -1,14 +1,16 @@
 """
 Utility functions for API endpoints.
-Centralizes common authentication and authorization logic.
+Centralizes authentication, authorization, and validation logic.
 """
 
+import re
 from functools import wraps
 from flask import jsonify
 from flask_jwt_extended import get_jwt_identity, get_jwt
 from app.models.user import User
 
 
+# === AUTENTICACIÓN Y AUTORIZACIÓN ===
 def get_current_user():
     """
     Get current authenticated user.
@@ -94,6 +96,7 @@ def check_ownership_or_admin(resource_owner_id, user_id):
     return (str(resource_owner_id) == str(user_id) or is_admin_user())
 
 
+# === VALIDACIONES ===
 def validate_email(email):
     """
     Validate email format.
@@ -104,7 +107,6 @@ def validate_email(email):
     Returns:
         bool: True if valid, False otherwise
     """
-    import re
     if not email or not isinstance(email, str):
         return False
     email_regex = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
@@ -126,6 +128,47 @@ def validate_password(password):
     if len(password) < 6:
         return False, "Password must be at least 6 characters long"
     return True, None
+
+
+def validate_string_field():
+    pass
+
+
+def validate_integer_field():
+    pass
+
+
+def validate_float_field():
+    pass
+
+
+def validate_boolean_field():
+    pass
+
+
+def validate_date_field():
+    pass
+
+
+def validate_required_fields():
+    pass
+
+
+def validate_user_data():
+    pass
+
+
+def validate_place_data():
+    pass
+
+
+def validate_pagination_params():
+    pass
+
+
+# === PATRONES REGEX ===
+EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+UUID_REGEX = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$')
 
 
 def handle_database_error(func):
