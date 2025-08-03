@@ -45,49 +45,6 @@ class UserRegister(Resource):
         except Exception as e:
             return {'error': str(e)}, 400
 
-@api.route('/search')
-class UserSearch(Resource):
-    @jwt_required()
-    @handle_exceptions
-    def get(self):
-        """
-        Search users by email, first name, or last name.
-        Query parameters:
-            q (str): Search term
-            limit (int, optional): Maximum number of results
-        Returns:
-            JSON response with matching users or error message
-        """
-        # Check admin permissions
-        if not get_current_user() or not check_ownership_or_admin(
-            None, get_jwt_identity()
-        ):
-            return APIResponse.forbidden("Admin access required")
-
-        # Get search parameters
-        from flask import request
-        search_term = request.args.get('q')
-        limit = request.args.get('limit', type=int)
-
-        if not search_term:
-            return APIResponse.bad_request("Search term is required")
-
-        # Validate limit parameter
-        if limit is not None and limit < 0:
-            return APIResponse.bad_request("Limit must be positive")
-
-        # Search users
-        users = facade.search_users(search_term, limit=limit)
-
-        return APIResponse.success(
-            {
-                "users": users,
-                "count": len(users),
-                "search_term": search_term
-            },
-            "Search completed successfully"
-        )
-
 @api.route('/admin/<string:is_admin>')
 class UsersByAdminStatus(Resource):
     @jwt_required()
