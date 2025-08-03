@@ -307,10 +307,7 @@ class ReviewResource(Resource):
 class PlaceReviews(Resource):
     """Resource for place-specific reviews."""
 
-    # Eliminar: @api.response(200, 'Place reviews retrieved successfully')
-    # Eliminar: @api.response(404, 'Place not found', error_model)
-    # Eliminar: @api.response(500, 'Internal server error', error_model)
-    def get(self, place_id):
+def get(self, place_id):
         """
         Get all reviews for a specific place (public endpoint).
 
