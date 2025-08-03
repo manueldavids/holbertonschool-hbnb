@@ -57,7 +57,9 @@
 
 		async function loadPlaceReviews() {
 			try {
-				const placeId = 'bd76aaf7-9a01-41ef-9513-312aaed9f7f3'; // Beautiful Beach House
+				// Obtener place_id de la URL
+				const urlParams = new URLSearchParams(window.location.search);
+				const placeId = urlParams.get('id') || 'bd76aaf7-9a01-41ef-9513-312aaed9f7f3';
 				const response = await fetch(`${CONFIG.API_BASE_URL}/reviews/place/${placeId}`);
 				
 				if (response.ok) {

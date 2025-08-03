@@ -34,12 +34,6 @@ error_model = {
 }
 
 
-
-
-
-# Using centralized function from utils.py
-
-
 @api.route('/')
 class PlacesList(Resource):
     def get(self):
