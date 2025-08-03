@@ -306,8 +306,7 @@ class ReviewResource(Resource):
 @api.route('/place/<string:place_id>')
 class PlaceReviews(Resource):
     """Resource for place-specific reviews."""
-
-def get(self, place_id):
+    def get(self, place_id):
         """
         Get all reviews for a specific place (public endpoint).
 
