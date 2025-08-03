@@ -538,3 +538,84 @@ class AdminAmenityResource(Resource):
                 'error': 'Failed to delete amenity',
                 'details': str(e)
             }, 500
+
+@api.route('/users/search')
+class AdminUserSearch(Resource):
+    @jwt_required()
+    @handle_exceptions
+    def get(self):
+        """
+        Search users by email, first name, or last name (admin only).
+        Query parameters:
+            q (str): Search term
+            limit (int, optional): Maximum number of results
+        Returns:
+            JSON response with matching users or error message
+        """
+        # Check admin permissions
+        if not get_current_admin_user():
+            return {
+                'error': 'Forbidden - admin access required'
+            }, 403
+
+        # Get search parameters
+        from flask import request
+        search_term = request.args.get('q')
+        limit = request.args.get('limit', type=int)
+
+        if not search_term:
+            return {
+                'error': 'Search term is required'
+            }, 400
+
+        # Validate limit parameter
+        if limit is not None and limit < 0:
+            return {
+                'error': 'Limit must be positive'
+            }, 400
+
+        # Search users
+        users = facade.search_users(search_term, limit=limit)
+
+        return {
+            "users": users,
+            "count": len(users),
+            "search_term": search_term,
+            "message": "Search completed successfully"
+        }, 200
+
+@api.route('/users/admin/<string:is_admin>')
+class AdminUsersByStatus(Resource):
+    @jwt_required()
+    @handle_exceptions
+    def get(self, is_admin):
+        """
+        Get users by admin status (admin only).
+        Args:
+            is_admin (str): Admin status filter ('true' or 'false')
+        Returns:
+            JSON response with filtered users or error message
+        """
+        # Check admin permissions
+        if not get_current_admin_user():
+            return {
+                'error': 'Forbidden - admin access required'
+            }, 403
+
+        # Validate admin status parameter
+        if is_admin.lower() not in ['true', 'false']:
+            return {
+                'error': 'Admin status must be "true" or "false"'
+            }, 400
+
+        is_admin_bool = is_admin.lower() == 'true'
+
+        # Get users by admin status
+        users = facade.get_users_by_admin_status(is_admin_bool)
+
+        return {
+            "users": users,
+            "count": len(users),
+            "is_admin": is_admin_bool,
+            "message": "Users retrieved successfully"
+        }, 200
