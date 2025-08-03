@@ -10,7 +10,6 @@
 		<header>
 			<div class="logo">
 				<img src="images/logo.png" alt="HBnB Logo">
-				<span>hbnb</span>
 			</div>
 			<nav>
 				<ul>
@@ -22,22 +21,15 @@
 
 		<main>
 			<section class="place-details">
-				<h1>Beautiful Beach House</h1>
+				<h1 id="place-title">Loading...</h1>
 				
-				<div class="place-card">
-					<p><strong>Host:</strong> John Doe</p>
-					<p><strong>Price per night:</strong> $150</p>
-					<p><strong>Description:</strong> A beautiful beach house with amazing views...</p>
-					<p><strong>Amenities:</strong> WiFi, Pool, Air Conditioning</p>
-					<div class="add-review-section">
-						<a href="review.html" class="add-review-btn">ADD REVIEW</a>
-					</div>
+				<div class="place-card" id="place-details">
+					<p>Loading place details...</p>
 				</div>
 
 				<div class="reviews">
 					<h2>Reviews</h2>
 					<div id="reviews-container">
-						<!-- Reviews will be loaded dynamically here -->
 						<p>Loading reviews...</p>
 					</div>
 				</div>
@@ -51,10 +43,6 @@
 	<script src="scripts.js"></script>
 	<script>
 		// Load reviews when page loads
-		document.addEventListener('DOMContentLoaded', function() {
-			loadPlaceReviews();
-		});
-
 		async function loadPlaceReviews() {
 			try {
 				// Obtener place_id de la URL
@@ -72,6 +60,44 @@
 			} catch (error) {
 				console.error('Error loading reviews:', error);
 				document.getElementById('reviews-container').innerHTML = '<p>Error loading reviews.</p>';
+			}
+		}
+
+		async function loadPlaceDetails() {
+			try {
+				const urlParams = new URLSearchParams(window.location.search);
+				const placeId = urlParams.get('id');
+				
+				if (!placeId) {
+					document.getElementById('place-title').textContent = 'Place not found';
+					return;
+				}
+
+				const response = await fetch(`${CONFIG.API_BASE_URL}/places/${placeId}`);
+				
+				if (response.ok) {
+					const place = await response.json();
+					
+					// Actualizar título
+					document.getElementById('place-title').textContent = place.name;
+					
+					// Actualizar detalles
+					const detailsContainer = document.getElementById('place-details');
+					detailsContainer.innerHTML = `
+						<p><strong>Host:</strong> ${place.host_name || 'Unknown'}</p>
+						<p><strong>Price per night:</strong> $${place.price_per_night}</p>
+						<p><strong>Description:</strong> ${place.description || 'No description available'}</p>
+						<p><strong>Amenities:</strong> ${place.amenities || 'None listed'}</p>
+						<div class="add-review-section">
+							<a href="review.html?place_id=${placeId}" class="add-review-btn">ADD REVIEW</a>
+						</div>
+					`;
+				} else {
+					document.getElementById('place-title').textContent = 'Place not found';
+				}
+			} catch (error) {
+				console.error('Error loading place details:', error);
+				document.getElementById('place-title').textContent = 'Error loading place';
 			}
 		}
 
@@ -140,5 +166,11 @@
 				container.appendChild(reviewCard);
 			});
 		}
+
+		// Modificar el DOMContentLoaded para cargar ambos
+		document.addEventListener('DOMContentLoaded', function() {
+			loadPlaceDetails();
+			loadPlaceReviews();
+		});
 	</script>
 </html>

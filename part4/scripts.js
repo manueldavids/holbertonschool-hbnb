@@ -46,8 +46,19 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (reviewForm) {
         reviewForm.addEventListener('submit', handleReviewSubmit);
         setupReviewForm();
+        // Load review page details
+        loadReviewPageDetails();
     } else {
-        checkAuthentication();
+        // Check if we're on place.html page
+        const placeTitle = document.getElementById('place-title');
+        if (placeTitle) {
+            // We're on place.html - load place details and reviews
+            loadPlaceDetails();
+            loadPlaceReviews();
+        } else {
+            // We're on index.html or other pages
+            checkAuthentication();
+        }
     }
 
     // Add logout functionality
@@ -178,7 +189,7 @@ function checkAuthentication() {
         if (loginLink) loginLink.style.display = 'none';
         if (registerLink) registerLink.style.display = 'none';
         if (logoutLink) logoutLink.style.display = 'inline';
-        fetchPlaces(token);
+        fetchPlaces(token); // Esto debería reemplazar los mock data
     }
 }
 
@@ -278,9 +289,14 @@ async function submitReview(reviewData, token) {
     submitBtn.disabled = true;
 
     try {
-        // Get place ID from URL or use default
+        // Get place ID from URL
         const urlParams = new URLSearchParams(window.location.search);
-        const placeId = urlParams.get('place_id') || 'bd76aaf7-9a01-41ef-9513-312aaed9f7f3';
+        const placeId = urlParams.get('place_id');
+        
+        if (!placeId) {
+            alert('Place ID not found in URL');
+            return;
+        }
 
         const response = await fetch(getApiUrl(CONFIG.ENDPOINTS.REVIEWS), {
             method: 'POST',
@@ -535,4 +551,201 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// ============================================================================
+// PLACE DETAILS FUNCTIONS
+// ============================================================================
+
+async function loadPlaceDetails() {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const placeId = urlParams.get('id');
+        
+        if (!placeId) {
+            document.getElementById('place-title').textContent = 'Place not found';
+            return;
+        }
+
+        const token = getAuthToken();
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`${CONFIG.API_BASE_URL}/places/${placeId}`, {
+            method: 'GET',
+            headers: headers
+        });
+        
+        if (response.ok) {
+            const place = await response.json();
+            
+            // Actualizar título
+            const titleElement = document.getElementById('place-title');
+            if (titleElement) {
+                titleElement.textContent = place.name || 'Unnamed Place';
+            }
+            
+            // Actualizar detalles
+            const detailsContainer = document.getElementById('place-details');
+            if (detailsContainer) {
+                detailsContainer.innerHTML = `
+                    <p><strong>Host:</strong> ${place.host_name || place.host || 'Unknown'}</p>
+                    <p><strong>Price per night:</strong> $${place.price_per_night || place.price || 0}</p>
+                    <p><strong>Description:</strong> ${place.description || 'No description available'}</p>
+                    <p><strong>Amenities:</strong> ${place.amenities || 'None listed'}</p>
+                    <div class="add-review-section">
+                        <a href="review.html?place_id=${placeId}" class="add-review-btn">ADD REVIEW</a>
+                    </div>
+                `;
+            }
+        } else {
+            console.error('Failed to load place details:', response.status);
+            const titleElement = document.getElementById('place-title');
+            if (titleElement) {
+                titleElement.textContent = 'Place not found';
+            }
+        }
+    } catch (error) {
+        console.error('Error loading place details:', error);
+        const titleElement = document.getElementById('place-title');
+        if (titleElement) {
+            titleElement.textContent = 'Error loading place';
+        }
+    }
+}
+
+async function loadPlaceReviews() {
+    try {
+        // Obtener place_id de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const placeId = urlParams.get('id') || 'bd76aaf7-9a01-41ef-9513-312aaed9f7f3';
+        
+        const token = getAuthToken();
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const response = await fetch(`${CONFIG.API_BASE_URL}/reviews/place/${placeId}`, {
+            method: 'GET',
+            headers: headers
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            await displayReviewsWithUserNames(data.reviews || data);
+        } else {
+            console.error('Failed to load reviews');
+            const container = document.getElementById('reviews-container');
+            if (container) {
+                container.innerHTML = '<p>No reviews available.</p>';
+            }
+        }
+    } catch (error) {
+        console.error('Error loading reviews:', error);
+        const container = document.getElementById('reviews-container');
+        if (container) {
+            container.innerHTML = '<p>Error loading reviews.</p>';
+        }
+    }
+}
+
+async function displayReviewsWithUserNames(reviews) {
+    const container = document.getElementById('reviews-container');
+    
+    if (!container) return;
+    
+    if (!reviews || reviews.length === 0) {
+        container.innerHTML = '<p>No reviews yet. Be the first to review this place!</p>';
+        return;
+    }
+
+    container.innerHTML = '';
+    
+    // Get unique user IDs
+    const userIds = [...new Set(reviews.map(review => review.user_id))];
+    const userNames = {};
+    
+    // Try to get user names (this would require an endpoint that we might not have)
+    // For now, we'll use a simple mapping or just show the user ID
+    for (const userId of userIds) {
+        userNames[userId] = `User ${userId.slice(0, 8)}...`;
+    }
+    
+    reviews.forEach(review => {
+        const reviewCard = document.createElement('article');
+        reviewCard.className = 'review-card';
+        
+        // Create star rating
+        const stars = '⭐'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+        
+        reviewCard.innerHTML = `
+            <p><strong>${userNames[review.user_id] || 'Anonymous User'}</strong></p>
+            <p>${review.comment}</p>
+            <p><strong>Rating:</strong> ${stars} (${review.rating}/5)</p>
+            <p><small>Posted on: ${new Date(review.created_at).toLocaleDateString()}</small></p>
+        `;
+        
+        container.appendChild(reviewCard);
+    });
+}
+
+// ============================================================================
+// REVIEW PAGE FUNCTIONS
+// ============================================================================
+
+async function loadReviewPageDetails() {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const placeId = urlParams.get('place_id');
+        
+        if (!placeId) {
+            document.getElementById('review-title').textContent = 'Place not found';
+            return;
+        }
+
+        const token = getAuthToken();
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`${CONFIG.API_BASE_URL}/places/${placeId}`, {
+            method: 'GET',
+            headers: headers
+        });
+        
+        if (response.ok) {
+            const place = await response.json();
+            
+            // Actualizar título
+            const titleElement = document.getElementById('review-title');
+            if (titleElement) {
+                titleElement.textContent = `Reviewing: ${place.name || 'Unnamed Place'}`;
+            }
+        } else {
+            console.error('Failed to load place details for review:', response.status);
+            const titleElement = document.getElementById('review-title');
+            if (titleElement) {
+                titleElement.textContent = 'Place not found';
+            }
+        }
+    } catch (error) {
+        console.error('Error loading place details for review:', error);
+        const titleElement = document.getElementById('review-title');
+        if (titleElement) {
+            titleElement.textContent = 'Error loading place';
+        }
+    }
+}
 
